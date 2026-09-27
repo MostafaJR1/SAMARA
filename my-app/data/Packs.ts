@@ -5,7 +5,7 @@ export type Product = (typeof ProductsData)[number];
 export type PackItem = {
   product: Product;
   quantity: number;
-  productUrl?: string | null;
+  productUrl: string | null;
 };
 
 export type PackColor = {
@@ -39,8 +39,8 @@ export const PacksData: Pack[] = [
     originalPrice: ProductsData[0].price + ProductsData[1].price,
     isActive: true,
     items: [
-      { product: ProductsData[0], quantity: 1 },
-      { product: ProductsData[1], quantity: 1 },
+      { product: ProductsData[0], quantity: 1, productUrl: null },
+      { product: ProductsData[1], quantity: 1, productUrl: null },
     ],
     colors: [],
   },
@@ -54,8 +54,8 @@ export const PacksData: Pack[] = [
     originalPrice: ProductsData[0].price + ProductsData[2].price, // 899 + 179 = 1078
     isActive: true,
     items: [
-      { product: ProductsData[0], quantity: 1 }, // كنبة قابلة للنفخ
-      { product: ProductsData[2], quantity: 1 }, // ناموسية أطفال
+      { product: ProductsData[0], quantity: 1, productUrl: null }, // كنبة قابلة للنفخ
+      { product: ProductsData[2], quantity: 1, productUrl: null }, // ناموسية أطفال
     ],
     colors: [],
   },

@@ -1,7 +1,11 @@
 import { ProductsData } from "@/data/Products";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-type Product = (typeof ProductsData)[number] & { isFeatured?: boolean; is_coupon_eligible?: boolean };
+type Product = (typeof ProductsData)[number] & {
+  isFeatured: boolean;
+  is_featured: boolean;
+  is_coupon_eligible: boolean;
+};
 type ProductRow = {
   id: string;
   name: string;
@@ -31,7 +35,7 @@ export async function getProductsFromDatabase(): Promise<Product[]> {
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
-    let productRows = data;
+    let productRows: ProductRow[] | null = data;
     if (error) {
       const legacyResult = await supabase
         .from("products")
@@ -50,10 +54,17 @@ export async function getProductsFromDatabase(): Promise<Product[]> {
         productRows = oldestResult.data;
       }
     }
-    const rows = (productRows ?? []) as ProductRow[];
-    if (rows.length === 0) return ProductsData;
+    const rows = productRows ?? [];
+    if (rows.length === 0) {
+      return ProductsData.map((product): Product => ({
+        ...product,
+        isFeatured: false,
+        is_featured: false,
+        is_coupon_eligible: true,
+      }));
+    }
 
-    return rows.map((row) => ({
+    return rows.map((row): Product => ({
       id: row.id,
       name: row.name,
       category: row.category,
@@ -69,9 +80,15 @@ export async function getProductsFromDatabase(): Promise<Product[]> {
       stock: row.stock,
       shipping: row.shipping,
       isFeatured: row.is_featured ?? false,
+      is_featured: row.is_featured ?? false,
       is_coupon_eligible: row.is_coupon_eligible ?? true,
-    })) as Product[];
+    }));
   } catch {
-    return ProductsData;
+    return ProductsData.map((product): Product => ({
+      ...product,
+      isFeatured: false,
+      is_featured: false,
+      is_coupon_eligible: true,
+    }));
   }
 }

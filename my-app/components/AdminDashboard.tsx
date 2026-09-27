@@ -33,7 +33,7 @@ export type AdminPack = {
   price: number;
   original_price: number | null;
   is_active: boolean;
-  pack_items: Array<{ product_id: string; quantity: number; product_url?: string | null }>;
+  pack_items: Array<{ product_id: string; quantity: number; product_url: string | null }>;
   colors: Array<{ id: string; name: string; hex: string; image: string }>;
 };
 
