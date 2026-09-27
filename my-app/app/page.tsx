@@ -68,7 +68,7 @@ export default async function Home() {
 
                 <div className="relative z-10 order-2 flex flex-col justify-end items-center bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
                   <h1 className="text-3xl font-black leading-snug text-white text-center mb-2 sm:text-3xl">
-                    {featuredProduct.name || featuredProduct.features[0]} yf uyf _ui ifj ujf
+                    {featuredProduct.name || featuredProduct.features[0]}
                   </h1>
 
                   <p className="mt-3 line-clamp-2 text-center text-[10px] leading-5 text-neutral-200 sm:mt-4 sm:text-sm">
