@@ -59,7 +59,7 @@ export function Header({ accountHref, accountLabel }: { accountHref: string; acc
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => setSearchOpen(true)} aria-label="البحث" className="flex h-7 w-7 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"><FiSearch className="h-4 w-4" /></button>
             <Link href="/wishlist" aria-label={`المفضلة (${wishlistCount})`} className="relative flex h-8 w-8 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"><FiHeart className="h-4 w-4" />{wishlistCount > 0 && <span className="absolute -left-0.5 -top-0.5 rounded-full bg-[#8B102F] px-1 text-[8px] text-white">{wishlistCount}</span>}</Link>
-            <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="hidden h-7 w-7 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 sm:flex"><FiUser className="h-4 w-4" /></Link>
+            <Link href={accountHref} aria-label={accountLabel} title={accountLabel} className="flex h-7 w-7 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"><FiUser className="h-4 w-4" /></Link>
             <Link href="/cart" aria-label="السلة" className="relative flex h-7 w-7 items-center justify-center rounded-md text-neutral-900 hover:bg-neutral-100"><FiShoppingBag className="h-4 w-4" /><span className="absolute -left-0.5 -top-0.5 rounded-full bg-[#8B102F] px-1 text-[8px] text-white">{cartCount}</span></Link>
           </div>
         </div>
