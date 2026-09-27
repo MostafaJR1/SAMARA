@@ -41,7 +41,7 @@ export function OffersClientView({
   }
 
   function handleAddToCart(product: Product) {
-    addProductToCart(product.id, 1);
+    addProductToCart(product.id, 1, product);
     setAddedProductId(product.id);
     setTimeout(() => setAddedProductId(null), 1800);
   }

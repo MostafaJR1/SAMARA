@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  FiArrowLeft,
+  FiShoppingBag,
   FiCheck,
   FiChevronLeft,
   FiCreditCard,
-  FiShoppingBag,
+  FiGift,
   FiStar,
   FiTruck,
 } from "react-icons/fi";
@@ -15,6 +15,7 @@ import { FAQAccordion } from "@/components/FAQAccordion";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { getProductsFromDatabase } from "@/lib/products-server";
 import { getPacksFromDatabase } from "@/lib/packs-server";
+import { FaCheckCircle } from "react-icons/fa";
 
 export default async function Home() {
   const products = await getProductsFromDatabase();
@@ -65,16 +66,16 @@ export default async function Home() {
               />
                 </div>
 
-                <div className="relative z-10 order-2 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
-                  <h1 className="text-xl font-black leading-snug text-white sm:text-3xl">
-                    {featuredProduct.features[0] || featuredProduct.name}
+                <div className="relative z-10 order-2 flex flex-col justify-end items-center bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
+                  <h1 className="text-3xl font-black leading-snug text-white text-center mb-2 sm:text-3xl">
+                    {featuredProduct.name || featuredProduct.features[0]} yf uyf _ui ifj ujf
                   </h1>
 
-                  <p className="mt-3 line-clamp-1 text-xs leading-5 text-neutral-200 sm:mt-4 sm:text-sm">
-                    {featuredProduct.name}: {featuredProduct.description}
+                  <p className="mt-3 line-clamp-2 text-center text-[10px] leading-5 text-neutral-200 sm:mt-4 sm:text-sm">
+                    {featuredProduct.description || featuredProduct.features[1] || "اكتشف هذا المنتج الرائع الآن!"}
                   </p>
 
-                  {featuredProduct.features.length > 1 && (
+                  {/* {featuredProduct.features.length > 1 && (
                     <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold text-white sm:mt-4 sm:text-xs">
                       {featuredProduct.features.slice(1, 3).map((feature) => (
                         <li key={feature} className="flex items-center gap-1.5">
@@ -83,8 +84,8 @@ export default async function Home() {
                         </li>
                       ))}
                     </ul>
-                  )}
-
+                  )} */}
+{/* 
                   <div className="mt-4 flex flex-wrap items-baseline gap-x-2.5 gap-y-1 sm:mt-5">
                     <span className="text-3xl font-black text-white sm:text-4xl">
                       {featuredProduct.price.toLocaleString("ar-MA")} د.م
@@ -99,13 +100,13 @@ export default async function Home() {
                         </span>
                       </>
                     )}
-                  </div>
+                  </div> */}
 
                   <Link
                     href={`/products/${featuredProduct.id}`}
                     className="cart-action-button mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md px-6 text-white sm:w-auto sm:min-w-48"
                   >
-                    اطلب الآن <FiArrowLeft className="h-3.5 w-3.5" />
+                    اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" /> | {featuredProduct.price.toLocaleString("ar-MA")} د.م
                   </Link>
 
                   <p className="mt-2 text-[10px] font-semibold text-neutral-200 sm:text-xs">
@@ -120,32 +121,32 @@ export default async function Home() {
             SECTION 2: TRUST SIGNALS (Subtle Warm Slate Tone)
         ======================================================== */}
         <ScrollReveal>
-        <section className="mt-6 border-y border-neutral-200/80 bg-[#fbf9fa] py-5 sm:py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
-              <TrustItem
-                icon={FiTruck}
-                title="توصيل في المغرب"
-                text="إلى باب منزلك"
-              />
-              <TrustItem
-                icon={FiTruck}
-                title="الشحن مجاني"
-                text="على جميع الطلبات"
-              />
-              <TrustItem
-                icon={FiCreditCard}
-                title="الدفع عند الاستلام"
-                text="أرسل طلبك دون بطاقة بنكية"
-              />
-              <TrustItem
-                icon={FiCheck}
-                title="طلب واضح"
-                text="السعر والخصائص قبل الإضافة للسلة"
-              />
-            </div>
-          </div>
-        </section>
+        <section className="mt-6 border-y border-neutral-200/80 bg-[#fbf9fa] py-5">
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+      <TrustItem
+        icon={FiTruck}
+        title="توصيل سريع"
+        text="في جميع أنحاء المغرب"
+      />
+      <TrustItem
+        icon={FiGift}
+        title="شحن مجاني"
+        text="على جميع الطلبات"
+      />
+      <TrustItem
+        icon={FiCreditCard}
+        title="الدفع عند الاستلام"
+        text="ادفع عند وصول طلبك"
+      />
+      <TrustItem
+        icon={FiCheck}
+        title="طلب بكل وضوح"
+        text="أسعار ومعلومات واضحة"
+      />
+    </div>
+  </div>
+</section>
         </ScrollReveal>
 
         {/* ========================================================
@@ -183,33 +184,31 @@ export default async function Home() {
                     {featuredProduct.name}
                   </h2>
 
-                  <p className="mt-2 text-xs leading-5 text-neutral-600">{featuredProduct.description}</p>
+                  <p className="mt-2 text-[10px] leading-5 text-neutral-600">{featuredProduct.description}</p>
 
-                  <ul className="mt-4 grid gap-2 text-xs font-semibold text-neutral-700 sm:grid-cols-2">
+                  <ul className="mt-4 grid gap-2 text-[11px] md:text-xs font-semibold text-[#8B102F] sm:grid-cols-2">
                     {featuredProduct.features.slice(0, 4).map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-xs bg-[#f7e9ed] text-[#8B102F]">
-                        <FiCheck className="h-3.5 w-3.5" />
-                      </span>
+                    <li key={feature} className="flex items-center gap-2">
+                        <FaCheckCircle className="h-3 md:w-3.5 w-3 md:h-3.5" />
                       <span>{feature}</span>
                     </li>
                     ))}
                   </ul>
 
                   {/* Pricing and Action */}
-                  <div className="mt-6 flex items-center justify-between border-t border-neutral-100 pt-4">
+                  <div className="mt-6 flex flex-col gap-3 items-center justify-between border-t border-neutral-100 pt-4">
                     <Link
                       href={`/products/${featuredProduct.id}`}
-                      className="cart-action-button inline-flex h-11 items-center justify-center gap-1.5 rounded-md px-7 text-white"
+                      className="w-full cart-action-button inline-flex h-11 items-center justify-center gap-1.5 rounded-md px-7 text-white"
                     >
                       اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" />
                     </Link>
-                    <div className="text-right">
+                    <div className="text-center">
                       <span className="block text-[10px] font-medium text-neutral-500">الشحن مجاني والدفع عند الاستلام</span>
                       {featuredProductSavings > 0 && (
                         <>
                           <del className="ml-2 text-sm font-medium text-neutral-500">{featuredProduct.oldPrice.toLocaleString("ar-MA")} د.م</del>
-                          <span className="ml-2 text-[10px] font-bold text-[#8B102F]">وفرت {featuredProductSavings.toLocaleString("ar-MA")} د.م</span>
+                          <span className="ml-2 text-[10px] font-bold text-[#8B102F]">وفر {featuredProductSavings.toLocaleString("ar-MA")} د.م</span>
                         </>
                       )}
                       <span className="text-2xl font-black text-[#8B102F]">
@@ -363,11 +362,11 @@ export default async function Home() {
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] font-bold text-[#8B102F]">جاهز للطلب</span>
+                <span className="text-[10px] font-bold text-[#8B102F]">جاهز للطلب ؟</span>
                 <h2 className="mt-1 text-xl font-black text-neutral-950 sm:text-2xl">
                   {featuredProduct.name}
                 </h2>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-neutral-600 sm:text-sm">
+                <p className="mt-1.5 line-clamp-2 text-[11px] md:text-xs leading-5 text-neutral-600 sm:text-sm">
                   {featuredProduct.description}
                 </p>
 
@@ -392,7 +391,7 @@ export default async function Home() {
                     href={`/products/${featuredProduct.id}`}
                     className="cart-action-button inline-flex h-11 items-center justify-center gap-2 rounded-md px-7 text-white sm:min-w-44"
                   >
-                    اطلب الآن <FiArrowLeft className="h-3.5 w-3.5" />
+                    اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" />
                   </Link>
                   <span className="text-center text-[10px] font-semibold text-neutral-600 sm:text-right sm:text-xs">
                     شحن مجاني في المغرب <span className="mx-1">·</span> الدفع عند الاستلام
@@ -412,7 +411,7 @@ export default async function Home() {
             <span className="text-sm font-black text-[#8B102F]">{featuredProduct.price.toLocaleString("ar-MA")} د.م</span>
           </div>
           <Link href={`/products/${featuredProduct.id}`} className="cart-action-button inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md px-5 text-white">
-            اطلب الآن <FiArrowLeft className="h-3.5 w-3.5" />
+            اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>

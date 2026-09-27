@@ -138,6 +138,20 @@ const emptyPack = (productId = ""): AdminPack => ({
   colors: [],
 });
 
+function getPackContentSnapshot(pack: AdminPack) {
+  return JSON.stringify({
+    id: pack.id,
+    name: pack.name,
+    slug: pack.slug,
+    description: pack.description,
+    image: pack.image,
+    price: pack.price,
+    original_price: pack.original_price,
+    pack_items: pack.pack_items,
+    colors: pack.colors,
+  });
+}
+
 function isValidUrl(str: string) {
   try {
     new URL(str);
@@ -182,6 +196,7 @@ export function AdminDashboard({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [packEditor, setPackEditor] = useState<AdminPack | null>(null);
+  const originalPackSnapshots = useRef(new Map<string, string>());
   const [packColorsEditor, setPackColorsEditor] = useState<AdminPack | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -308,6 +323,21 @@ export function AdminDashboard({
 
     if (kind === "pack") {
       if (!packEditor) return;
+      const originalPackSnapshot = packEditor.id
+        ? originalPackSnapshots.current.get(packEditor.id)
+        : undefined;
+      const packHasNoUnsavedChanges = Boolean(
+        originalPackSnapshot &&
+        getPackContentSnapshot(packEditor) === originalPackSnapshot &&
+        packs.find((pack) => pack.id === packEditor.id)?.is_active === packEditor.is_active,
+      );
+
+      if (packHasNoUnsavedChanges) {
+        setEditorError(null);
+        setPackEditor(null);
+        return;
+      }
+
       if (!packEditor.name.trim()) {
         setEditorError("يرجى إدخال اسم الباقة");
         return;
@@ -373,6 +403,36 @@ export function AdminDashboard({
       } finally {
         setBusy(false);
       }
+    }
+  }
+
+  async function updatePackStatus(packId: string, isActive: boolean) {
+    setBusy(true);
+    setEditorError(null);
+    try {
+      const response = await fetch("/api/admin/catalog", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "packStatus", id: packId, data: { isActive } }),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok || result.error) throw new Error(result.error ?? "تعذر تحديث حالة الباقة");
+
+      setPacks((current) => current.map((pack) =>
+        pack.id === packId ? { ...pack, is_active: isActive } : pack,
+      ));
+      setPackEditor((current) => current?.id === packId
+        ? { ...current, is_active: isActive }
+        : current,
+      );
+      toast.success(isActive ? "تم تفعيل الباقة في المتجر" : "تم إخفاء الباقة من المتجر");
+      router.refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "تعذر تحديث حالة الباقة";
+      setEditorError(message);
+      toast.error(message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -917,6 +977,7 @@ export function AdminDashboard({
               packs={filteredPacks}
               onEdit={(pk) => {
                 setEditorError(null);
+                originalPackSnapshots.current.set(pk.id, getPackContentSnapshot(pk));
                 setPackEditor(pk);
               }}
               onColors={setPackColorsEditor}
@@ -948,6 +1009,13 @@ export function AdminDashboard({
           products={products}
           busy={busy}
           onChange={setPackEditor}
+          onToggleActive={(isActive) => {
+            if (packEditor.id) {
+              void updatePackStatus(packEditor.id, isActive);
+            } else {
+              setPackEditor({ ...packEditor, is_active: isActive });
+            }
+          }}
           onSave={() => save("pack")}
           onClose={() => {
             setEditorError(null);
@@ -967,7 +1035,7 @@ export function AdminDashboard({
       )}
 
       {couponEditor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-2xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[1px]">
           <div dir="rtl" className="w-full max-w-lg rounded-lg border border-[#e1e3e5] bg-white p-5 shadow-xl">
             <div className="flex items-center justify-between border-b border-[#e1e3e5] pb-3">
               <h3 className="text-sm font-bold text-[#202223]">إنشاء قسيمة خصم جديدة</h3>
@@ -1152,7 +1220,7 @@ function DeleteConfirmationDialog({
   const subject = isBulkOrderDelete ? `${request.ids.length} طلب` : `«${request.label}»`;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]" role="presentation">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[1px]" role="presentation">
       <section
         dir="rtl"
         role="alertdialog"
@@ -1963,6 +2031,7 @@ function PackEditorModal({
   products,
   busy,
   onChange,
+  onToggleActive,
   onSave,
   onClose,
 }: {
@@ -1971,6 +2040,7 @@ function PackEditorModal({
   products: AdminProduct[];
   busy: boolean;
   onChange: (val: AdminPack) => void;
+  onToggleActive: (isActive: boolean) => void;
   onSave: () => void;
   onClose: () => void;
 }) {
@@ -2170,7 +2240,8 @@ function PackEditorModal({
             <input
               type="checkbox"
               checked={value.is_active}
-              onChange={(e) => set("is_active", e.target.checked)}
+              disabled={busy}
+              onChange={(e) => onToggleActive(e.target.checked)}
               className="rounded accent-[#8B102F]"
             />
             <span>تفعيل الباقة وعرضها في المتجر</span>
@@ -2319,7 +2390,7 @@ function PolarisModalShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-2xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[1px]">
       <div
         dir="rtl"
         className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-lg border border-[#e1e3e5] bg-white shadow-xl"

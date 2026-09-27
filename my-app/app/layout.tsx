@@ -3,6 +3,7 @@ import { Alexandria, Ruwudu, Tajawal } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { AddToCartModal } from "@/components/AddToCartModal";
 import { getAuthContext } from "@/lib/auth";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -54,6 +55,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <SpeedInsights />
         <Header accountHref={accountHref} accountLabel={accountLabel} />
+        <AddToCartModal />
         {children}
         <Footer />
       </body>

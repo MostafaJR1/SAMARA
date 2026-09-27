@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import {
   FiArrowRight,
   FiMinus,
@@ -17,6 +17,7 @@ import type { ProductsData } from "@/data/Products";
 import type { Pack } from "@/data/Packs";
 import { getPackStock } from "@/data/Packs";
 import {
+  CART_COUPON_STORAGE_KEY,
   CART_STORAGE_KEY,
   CART_UPDATED_EVENT,
   getCartItems,
@@ -130,6 +131,7 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
   const [coupon, setCoupon] = useState<ActiveCoupon>(null);
   const [couponMessage, setCouponMessage] = useState("");
   const [couponError, setCouponError] = useState(false);
+  const couponRestoreStarted = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customer, setCustomer] = useState<CustomerDetails>({
     name: "",
@@ -140,6 +142,58 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
   const [orderSubmitted, setOrderSubmitted] = useState(false);
 
   const cartItems = cartCleared ? [] : items;
+
+  useEffect(() => {
+    const code = window.sessionStorage.getItem(CART_COUPON_STORAGE_KEY);
+    if (!code || couponRestoreStarted.current) return;
+    couponRestoreStarted.current = true;
+
+    async function restoreCoupon() {
+      try {
+        const response = await fetch("/api/coupons/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          window.sessionStorage.removeItem(CART_COUPON_STORAGE_KEY);
+          return;
+        }
+
+        const restoredCoupon: Exclude<ActiveCoupon, null> = {
+          code: data.code,
+          value: data.discountPercent,
+          appliesToAll: data.appliesToAll,
+          applicableProductIds: data.applicableProductIds || [],
+        };
+        const eligibleSubtotal = resolveCartItems(getCartItems(), products, packs).reduce((sum, resolved) => {
+          if (!("product" in resolved)) return sum;
+          const product = resolved.product as Product;
+          const isEligible = product.is_coupon_eligible ?? true;
+          const isTargeted = restoredCoupon.appliesToAll ||
+            restoredCoupon.applicableProductIds.map(String).includes(String(product.id));
+          return isEligible && isTargeted
+            ? sum + product.price * resolved.item.quantity
+            : sum;
+        }, 0);
+
+        if (eligibleSubtotal <= 0) {
+          window.sessionStorage.removeItem(CART_COUPON_STORAGE_KEY);
+          return;
+        }
+
+        setCoupon(restoredCoupon);
+        setCouponInput(restoredCoupon.code);
+        setCouponError(false);
+        setCouponMessage(`تم تفعيل خصم ${restoredCoupon.value}% على المنتجات المؤهلة فقط`);
+      } catch {
+        window.sessionStorage.removeItem(CART_COUPON_STORAGE_KEY);
+      }
+    }
+
+    void restoreCoupon();
+  }, [storedCartSnapshot, products, packs]);
 
   function getCouponEligibleSubtotal(activeCoupon: Exclude<ActiveCoupon, null>) {
     return cartItems.reduce((sum, item) => {
@@ -230,6 +284,7 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
       }
 
       setCoupon(validCoupon);
+      window.sessionStorage.setItem(CART_COUPON_STORAGE_KEY, validCoupon.code);
       setCouponError(false);
       setCouponMessage(`تم تفعيل خصم ${data.discountPercent}% على المنتجات المؤهلة فقط`);
     } catch {
@@ -243,6 +298,7 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
     setCouponInput("");
     setCouponMessage("");
     setCouponError(false);
+    window.sessionStorage.removeItem(CART_COUPON_STORAGE_KEY);
   }
 
   async function submitOrder(event: FormEvent<HTMLFormElement>) {

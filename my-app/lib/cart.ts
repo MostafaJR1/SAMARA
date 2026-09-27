@@ -21,7 +21,15 @@ export type ResolvedCartItem =
   | { item: PackCartItem; pack: Pack };
 
 export const CART_STORAGE_KEY = "samara-cart";
+export const CART_COUPON_STORAGE_KEY = "samara-cart-coupon";
 export const CART_UPDATED_EVENT = "samara-cart-updated";
+export const CART_ITEM_ADDED_EVENT = "samara-cart-item-added";
+
+export type CartItemAddedDetail = {
+  item: CartItem;
+  product?: Product;
+  pack?: Pack;
+};
 
 function isCartItem(value: unknown): value is CartItem {
   if (!value || typeof value !== "object") return false;
@@ -49,12 +57,15 @@ function saveCartItems(items: CartItem[]) {
   window.dispatchEvent(new Event(CART_UPDATED_EVENT));
 }
 
-export function addProductToCart(productId: string, quantity: number) {
+export function addProductToCart(productId: string, quantity: number, product?: Product) {
   const items = getCartItems();
   const existing = items.find((item) => item.type === "product" && item.productId === productId);
   if (existing?.type === "product") existing.quantity += quantity;
   else items.push({ type: "product", productId, quantity });
   saveCartItems(items);
+  window.dispatchEvent(new CustomEvent<CartItemAddedDetail>(CART_ITEM_ADDED_EVENT, {
+    detail: { item: { type: "product", productId, quantity }, product },
+  }));
 }
 
 export function addPackToCart(pack: Pack, quantity: number) {
@@ -63,6 +74,9 @@ export function addPackToCart(pack: Pack, quantity: number) {
   if (existing?.type === "pack") existing.quantity += quantity;
   else items.push({ type: "pack", packId: pack.id, quantity });
   saveCartItems(items);
+  window.dispatchEvent(new CustomEvent<CartItemAddedDetail>(CART_ITEM_ADDED_EVENT, {
+    detail: { item: { type: "pack", packId: pack.id, quantity }, pack },
+  }));
 }
 
 export function updateCartItem(item: CartItem, quantity: number) {

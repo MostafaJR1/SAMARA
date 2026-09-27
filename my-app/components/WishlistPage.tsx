@@ -55,7 +55,7 @@ function WishlistCard({ product }: { product: Product }) {
     : 0;
 
   function addToCart() {
-    addProductToCart(product.id, 1);
+    addProductToCart(product.id, 1, product);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1800);
   }

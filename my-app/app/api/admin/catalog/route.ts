@@ -110,6 +110,39 @@ async function requireAdminApi() {
   return { supabase: context.supabase };
 }
 
+function getCatalogErrorMessage(error: unknown, fallback: string) {
+  if (error && typeof error === "object") {
+    const databaseError = error as {
+      code?: unknown;
+      constraint?: unknown;
+      details?: unknown;
+      message?: unknown;
+    };
+    const errorText = [databaseError.constraint, databaseError.details, databaseError.message]
+      .filter((value): value is string => typeof value === "string")
+      .join(" ");
+
+    if (databaseError.code === "23503" && errorText.includes("pack_items_product_id_fkey")) {
+      return "لا يمكن حذف هذا المنتج لأنه مستخدم في باقة أو أكثر. أزل المنتج من الباقات المرتبطة أولاً، ثم أعد المحاولة.";
+    }
+    if (databaseError.code === "23514" && errorText.includes("order_items_reference_check")) {
+      return "تعذر حذف الباقة بسبب ارتباطها بطلب سابق. حدّث قاعدة البيانات لحفظ تفاصيل الطلب بعد حذف الباقة، ثم أعد المحاولة.";
+    }
+    if (databaseError.code === "23503" && errorText.includes("order_items_pack_id_fkey")) {
+      return "لا يمكن حذف الباقة بسبب ارتباطها بطلب سابق. أعد تشغيل تحديث قاعدة البيانات ثم حاول مرة أخرى.";
+    }
+    if (typeof databaseError.message === "string" && databaseError.message.includes("permission denied for table packs")) {
+      return "لا توجد صلاحية لتحديث حالة الباقة في قاعدة البيانات. شغّل تحديث صلاحيات الباقات في Supabase ثم أعد المحاولة.";
+    }
+    if (typeof databaseError.message === "string" && databaseError.message.trim()) {
+      return databaseError.message;
+    }
+  }
+
+  if (error instanceof z.ZodError) return "بيانات المنتج أو الباقة غير مكتملة";
+  return error instanceof Error ? error.message : fallback;
+}
+
 export async function POST(request: Request) {
   const auth = await requireAdminApi();
   if ("response" in auth) return auth.response;
@@ -162,7 +195,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "نوع البيانات غير صالح" }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof z.ZodError ? "بيانات المنتج أو الباقة غير مكتملة" : error instanceof Error ? error.message : "تعذر حفظ البيانات" }, { status: 400 });
+    return NextResponse.json({ error: getCatalogErrorMessage(error, "تعذر حفظ البيانات") }, { status: 400 });
   }
 }
 
@@ -173,6 +206,19 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json() as { kind?: string; id?: string; data?: unknown };
     if (!body.id) return NextResponse.json({ error: "المعرّف مطلوب" }, { status: 400 });
+
+    if (body.kind === "packStatus") {
+      const { isActive } = z.object({ isActive: z.boolean() }).parse(body.data);
+      const { data, error } = await auth.supabase
+        .from("packs")
+        .update({ is_active: isActive, updated_at: new Date().toISOString() })
+        .eq("id", body.id)
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return NextResponse.json({ error: "الباقة غير موجودة" }, { status: 404 });
+      return NextResponse.json({ ok: true });
+    }
 
     if (body.kind === "featuredProduct") {
       const { data: product, error: productError } = await auth.supabase
@@ -214,18 +260,40 @@ export async function PATCH(request: Request) {
 
     if (body.kind === "pack") {
       const pack = packSchema.parse({ ...(normalizePackPayload(body.data) as object), id: body.id });
+      const { data: existingItems, error: existingItemsError } = await auth.supabase
+        .from("pack_items")
+        .select("product_id, quantity, product_url")
+        .eq("pack_id", body.id);
+      if (existingItemsError) throw existingItemsError;
+
+      const storedItems = (existingItems ?? [])
+        .map((item) => ({ productId: item.product_id, quantity: item.quantity, productUrl: item.product_url ?? null }))
+        .sort((first, second) => first.productId.localeCompare(second.productId));
+      const submittedItems = pack.items
+        .map((item) => ({ productId: item.productId, quantity: item.quantity, productUrl: item.productUrl ?? null }))
+        .sort((first, second) => first.productId.localeCompare(second.productId));
+      const packItemsChanged = storedItems.length !== submittedItems.length ||
+        storedItems.some((item, index) => {
+          const submittedItem = submittedItems[index];
+          return item.productId !== submittedItem.productId ||
+            item.quantity !== submittedItem.quantity ||
+            item.productUrl !== submittedItem.productUrl;
+        });
+
       const { error: packError } = await auth.supabase.from("packs").update({ name: pack.name, slug: pack.slug, description: pack.description, image: pack.image, price: pack.price, original_price: pack.originalPrice, is_active: pack.isActive, colors: pack.colors, updated_at: new Date().toISOString() }).eq("id", body.id);
       if (packError) throw packError;
-      const { error: deleteError } = await auth.supabase.from("pack_items").delete().eq("pack_id", body.id);
-      if (deleteError) throw deleteError;
-      const { error: itemError } = await auth.supabase.from("pack_items").insert(pack.items.map((item) => ({ pack_id: body.id, product_id: item.productId, quantity: item.quantity, ...(item.productUrl ? { product_url: item.productUrl } : {}) })));
-      if (itemError) throw itemError;
+      if (packItemsChanged) {
+        const { error: deleteError } = await auth.supabase.from("pack_items").delete().eq("pack_id", body.id);
+        if (deleteError) throw deleteError;
+        const { error: itemError } = await auth.supabase.from("pack_items").insert(pack.items.map((item) => ({ pack_id: body.id, product_id: item.productId, quantity: item.quantity, ...(item.productUrl ? { product_url: item.productUrl } : {}) })));
+        if (itemError) throw itemError;
+      }
       return NextResponse.json({ ok: true });
     }
 
     return NextResponse.json({ error: "نوع البيانات غير صالح" }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof z.ZodError ? "بيانات المنتج أو الباقة غير مكتملة" : error instanceof Error ? error.message : "تعذر تحديث البيانات" }, { status: 400 });
+    return NextResponse.json({ error: getCatalogErrorMessage(error, "تعذر تحديث البيانات") }, { status: 400 });
   }
 }
 
@@ -235,8 +303,25 @@ export async function DELETE(request: Request) {
   const body = await request.json() as { kind?: string; id?: string };
   if (!body.id || (body.kind !== "product" && body.kind !== "pack")) return NextResponse.json({ error: "بيانات الحذف غير صالحة" }, { status: 400 });
 
+  if (body.kind === "pack") {
+    const { data: orderItems, error: orderItemsError } = await auth.supabase
+      .from("order_items")
+      .select("id")
+      .eq("pack_id", body.id)
+      .limit(1);
+
+    if (orderItemsError) {
+      return NextResponse.json({ error: "تعذر التحقق من الطلبات المرتبطة بالباقة. لم يتم حذفها." }, { status: 500 });
+    }
+    if (orderItems?.length) {
+      return NextResponse.json({
+        error: "لا يمكن حذف هذه الباقة لأنها مرتبطة بطلب سابق. عطّل الباقة بدلاً من حذفها للحفاظ على سجل الطلبات.",
+      }, { status: 409 });
+    }
+  }
+
   const table = body.kind === "product" ? "products" : "packs";
   const { error } = await auth.supabase.from(table).delete().eq("id", body.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 409 });
+  if (error) return NextResponse.json({ error: getCatalogErrorMessage(error, "تعذر الحذف") }, { status: 409 });
   return NextResponse.json({ ok: true });
 }

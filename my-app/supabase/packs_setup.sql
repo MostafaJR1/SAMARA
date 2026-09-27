@@ -91,7 +91,7 @@ begin
   if not exists (select 1 from pg_constraint where conname = 'order_items_reference_check') then
     alter table public.order_items add constraint order_items_reference_check check (
       (item_type = 'product' and product_id is not null and pack_id is null)
-      or (item_type = 'pack' and product_id is null and pack_id is not null and pack_name is not null)
+      or (item_type = 'pack' and product_id is null and pack_name is not null)
     );
   end if;
 end;
@@ -106,6 +106,7 @@ revoke all on table public.products from anon, authenticated;
 revoke all on table public.packs from anon, authenticated;
 revoke all on table public.pack_items from anon, authenticated;
 grant select on table public.products, public.packs, public.pack_items to anon, authenticated;
+grant update on table public.packs to authenticated;
 
 drop policy if exists products_public_read on public.products;
 create policy products_public_read on public.products for select to anon, authenticated using (is_active = true);

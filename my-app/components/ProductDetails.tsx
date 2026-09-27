@@ -92,7 +92,7 @@ export function ProductDetails({
   );
 
   function addToCart() {
-    addProductToCart(product.id, quantity);
+    addProductToCart(product.id, quantity, product);
     setAdded(true);
 
     window.setTimeout(() => {

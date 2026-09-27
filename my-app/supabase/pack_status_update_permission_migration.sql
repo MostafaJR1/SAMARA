@@ -1,0 +1,1 @@
+grant update on table public.packs to authenticated;

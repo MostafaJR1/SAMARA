@@ -11,6 +11,7 @@ const navigation = [
   { label: "الرئيسية", href: "/" },
   { label: "العروض", href: "/offers" },
   { label: "الأكثر مبيعًا", href: "/best-sellers" },
+  { label: "الباقات", href: "/packs" },
   { label: "المنتجات", href: "/products" },
 ];
 
