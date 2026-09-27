@@ -3,7 +3,7 @@ import { Alexandria, Ruwudu, Tajawal } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { AddToCartModal } from "@/components/AddToCartModal";
+import { AddToCartModal } from "../components/AddToCartModal";
 import { getAuthContext } from "@/lib/auth";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -35,13 +35,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   let accountLabel = "تسجيل الدخول";
 
   try {
-    const { user, role } = await getAuthContext();
-    if (user && role === "admin") {
+    const { user } = await getAuthContext();
+    if (user) {
       accountHref = "/admin";
       accountLabel = "لوحة الإدارة";
-    } else if (user) {
-      accountHref = "/";
-      accountLabel = "حسابي";
     }
   } catch {
     // Keep the account entry usable as a login link when auth is unavailable.
