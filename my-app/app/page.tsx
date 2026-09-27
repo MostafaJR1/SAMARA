@@ -12,6 +12,7 @@ import {
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { HomePackButton } from "@/components/HomePackButton";
 import { FAQAccordion } from "@/components/FAQAccordion";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { getProductsFromDatabase } from "@/lib/products-server";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 
@@ -50,23 +51,22 @@ export default async function Home() {
         {/* ========================================================
             SECTION 1: HERO SHOWCASE (Framed Container with Depth)
         ======================================================== */}
+        <ScrollReveal>
         <section className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-md border border-neutral-200 bg-neutral-950">
-            <div className="relative h-[390px] w-full sm:h-[420px] lg:h-[460px]">
+              <div className="relative grid aspect-square overflow-hidden rounded-md border border-neutral-200 bg-neutral-950 text-white lg:aspect-auto lg:grid-cols-[minmax(0,1fr)_380px]" dir="ltr">
+                <div className="absolute inset-0 overflow-hidden bg-neutral-100 lg:relative lg:order-2 lg:aspect-square lg:w-full">
               <Image
                 src={featuredProduct.image}
                 alt={featuredProduct.name}
                 fill
                 priority
-                sizes="100vw"
-                className="object-cover opacity-80 sm:opacity-90"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
               />
-              {/* RTL Legibility Gradient: Heavy dark scrim on right & bottom where text sits */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent sm:bg-gradient-to-l sm:from-black/90 sm:via-black/50 sm:to-transparent" />
+                </div>
 
-              <div className="relative z-10 flex h-full items-end p-4 sm:items-center sm:p-10 lg:p-14">
-                <div className="w-full max-w-xl text-right text-white">
-                  <h1 className="text-2xl font-black leading-snug text-white sm:text-4xl">
+                <div className="relative z-10 order-2 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
+                  <h1 className="text-xl font-black leading-snug text-white sm:text-3xl">
                     {featuredProduct.features[0] || featuredProduct.name}
                   </h1>
 
@@ -111,15 +111,15 @@ export default async function Home() {
                   <p className="mt-2 text-[10px] font-semibold text-neutral-200 sm:text-xs">
                     الدفع عند الاستلام <span className="mx-1.5">·</span> توصيل مجاني في المغرب
                   </p>
-                </div>
-              </div>
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ========================================================
             SECTION 2: TRUST SIGNALS (Subtle Warm Slate Tone)
         ======================================================== */}
+        <ScrollReveal>
         <section className="mt-6 border-y border-neutral-200/80 bg-[#fbf9fa] py-5 sm:py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
@@ -146,10 +146,12 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ========================================================
             SECTION 6: PRODUCT SPOTLIGHT (Soft Tinted Card Stage)
         ======================================================== */}
+        <ScrollReveal>
         <section id="featured-offer" className="scroll-mt-24 border-y border-neutral-200/80 bg-[#f7f4f5] py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="overflow-hidden rounded-md border border-neutral-200 bg-white p-5 sm:p-8">
@@ -220,11 +222,13 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ========================================================
     SECTION 7: BUNDLE VALUE OFFER (Samara Store Match)
 ======================================================== */}
 {featuredPack && (
+  <ScrollReveal>
   <section className="bg-white py-8 sm:py-10" dir="rtl">
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       
@@ -296,9 +300,11 @@ export default async function Home() {
 
     </div>
   </section>
+  </ScrollReveal>
 )}
 
         {secondaryProducts.length > 0 && (
+          <ScrollReveal>
           <section className="bg-[#faf9f8] py-7 sm:py-9">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mb-3 flex items-end justify-between gap-3 text-right">
@@ -317,11 +323,13 @@ export default async function Home() {
               </div>
             </div>
           </section>
+          </ScrollReveal>
         )}
 
         {/* ========================================================
             SECTION 9: FAQ SECTION (Clean White Background)
         ======================================================== */}
+        <ScrollReveal>
         <section id="faq" className="scroll-mt-24 bg-white py-8 sm:py-10">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="mb-6 text-right">
@@ -335,10 +343,12 @@ export default async function Home() {
             <FAQAccordion />
           </div>
         </section>
+        </ScrollReveal>
 
         {/* ========================================================
             SECTION 10: BOTTOM FINAL CONVERSION BANNER
         ======================================================== */}
+        <ScrollReveal>
         <section className="border-t border-neutral-200 bg-[#f7f4f5] py-7 sm:py-9">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid items-center gap-5 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:gap-8 lg:gap-12">
@@ -392,6 +402,7 @@ export default async function Home() {
             </div>
           </div>
         </section>
+        </ScrollReveal>
 
       </main>
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden">

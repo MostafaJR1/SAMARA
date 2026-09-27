@@ -48,6 +48,14 @@ export type AdminCoupon = {
   created_at?: string;
 };
 
+type AdminProductColor = {
+  id: string;
+  name: string;
+  hex: string;
+  image: string;
+  galleryImages?: string[];
+};
+
 // 2. Extend AdminProduct type:
 export type AdminProduct = {
   id: string;
@@ -65,7 +73,7 @@ export type AdminProduct = {
   is_active: boolean;
   is_featured?: boolean;
   is_coupon_eligible?: boolean; // <-- NEW
-  colors: Array<{ id: string; name: string; hex: string; image: string }>;
+  colors: AdminProductColor[];
   features: string[];
 };
 
@@ -112,6 +120,7 @@ const emptyProduct = (): AdminProduct => ({
   stock: 10,
   shipping: "شحن مجاني",
   is_active: true,
+  is_featured: false,
   colors: [],
   features: [],
 });
@@ -244,11 +253,14 @@ export function AdminDashboard({
 
       setBusy(true);
       try {
+        const cleanedFeatures = productEditor.features.map((feature) => feature.trim()).filter(Boolean);
         const payload = {
           ...productEditor,
+          features: cleanedFeatures,
           id: productEditor.id || undefined,
           oldPrice: productEditor.old_price,
           isActive: productEditor.is_active,
+          isFeatured: productEditor.is_featured ?? false,
           isCouponEligible: productEditor.is_coupon_eligible ?? true,
         };
 
@@ -258,19 +270,28 @@ export function AdminDashboard({
           body: JSON.stringify({ kind: "product", id: productEditor.id || undefined, data: payload }),
         });
 
-        const result = (await response.json()) as { error?: string; product?: AdminProduct };
+        const result = (await response.json()) as { error?: string; data?: { id?: string } };
         if (!response.ok || result.error) {
           throw new Error(result.error ?? "تعذر حفظ المنتج");
         }
 
         // Update local state without full reload
+        const savedProduct = {
+          ...productEditor,
+          features: cleanedFeatures,
+          is_featured: productEditor.is_featured ?? false,
+        };
         if (productEditor.id) {
-          setProducts((curr) =>
-            curr.map((p) => (p.id === productEditor.id ? { ...productEditor } : p))
-          );
+          setProducts((curr) => curr.map((product) => {
+            if (product.id === productEditor.id) return savedProduct;
+            return savedProduct.is_featured ? { ...product, is_featured: false } : product;
+          }));
           toast.success("تم تحديث بيانات المنتج بنجاح");
         } else {
-          setProducts((curr) => [{ ...productEditor, id: result.product?.id || `p-${Date.now()}` }, ...curr]);
+          setProducts((curr) => [
+            { ...savedProduct, id: result.data?.id || `p-${Date.now()}` },
+            ...curr.map((product) => savedProduct.is_featured ? { ...product, is_featured: false } : product),
+          ]);
           toast.success("تمت إضافة المنتج الجديد بنجاح");
         }
 
@@ -1528,7 +1549,7 @@ function ProductEditorModal({
 
   // Update color/image list and keep the first item as value.image
   const handleMediaColorsChange = (
-    newColors: Array<{ id: string; name: string; hex: string; image: string }>
+    newColors: AdminProductColor[]
   ) => {
     const primaryImg = newColors.length > 0 && newColors[0].image ? newColors[0].image : value.image;
     onChange({
@@ -1604,6 +1625,72 @@ function ProductEditorModal({
           />
         </div>
 
+        <div className="sm:col-span-2 rounded-md border border-[#e1e3e5] bg-[#fafbfb] p-3.5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-bold text-[#202223]">مميزات المنتج</span>
+              <p className="mt-0.5 text-[10px] text-[#6d7175]">أضف كل ميزة كنقطة مستقلة.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onChange({ ...value, features: [...value.features, ""] })}
+              className="inline-flex shrink-0 items-center gap-1 rounded border border-[#8B102F]/30 bg-white px-2.5 py-1 text-xs font-bold text-[#8B102F] transition hover:bg-[#f7e9ed]"
+            >
+              <FiPlus className="h-3.5 w-3.5" />
+              <span>إضافة نقطة</span>
+            </button>
+          </div>
+          {value.features.length > 0 ? (
+            <ul className="space-y-2">
+              {value.features.map((feature, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#8B102F]" />
+                  <textarea
+                    rows={1}
+                    value={feature}
+                    onChange={(event) => {
+                      const input = event.target.value;
+                      const separator = /[\r\n;؛|]+/;
+                      if (separator.test(input)) {
+                        const splitFeatures = input.split(separator).map((item) => item.trim()).filter(Boolean);
+                        if (/[\r\n;؛|]\s*$/.test(input)) splitFeatures.push("");
+                        onChange({
+                          ...value,
+                          features: [
+                            ...value.features.slice(0, index),
+                            ...splitFeatures,
+                            ...value.features.slice(index + 1),
+                          ],
+                        });
+                      } else {
+                        onChange({
+                          ...value,
+                          features: value.features.map((item, itemIndex) => itemIndex === index ? input : item),
+                        });
+                      }
+                    }}
+                    placeholder={`الميزة ${index + 1}`}
+                    aria-label={`الميزة ${index + 1}`}
+                    className="min-h-9 min-w-0 flex-1 resize-none rounded border border-[#c9cccf] bg-white px-2.5 py-2 text-xs leading-4 outline-none focus:border-[#8B102F] focus:ring-1 focus:ring-[#8B102F]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...value, features: value.features.filter((_, itemIndex) => itemIndex !== index) })}
+                    aria-label={`حذف الميزة ${index + 1}`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-[#6d7175] transition hover:bg-red-50 hover:text-red-700"
+                  >
+                    <FiTrash2 className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="rounded border border-dashed border-[#c9cccf] bg-white px-3 py-4 text-center text-[11px] text-[#6d7175]">
+              لم تتم إضافة أي مميزات بعد.
+            </p>
+          )}
+        </div>
+
         <div className="sm:col-span-2 flex items-center justify-between border-t border-[#e1e3e5] pt-3">
           <label className="flex items-center gap-2 text-xs font-bold text-[#202223]">
             <input
@@ -1640,9 +1727,9 @@ function ProductImageMediaManager({
   onChange,
   onSetPrimaryDirect,
 }: {
-  colors: Array<{ id: string; name: string; hex: string; image: string }>;
+  colors: AdminProductColor[];
   primaryImage: string;
-  onChange: (items: Array<{ id: string; name: string; hex: string; image: string }>) => void;
+  onChange: (items: AdminProductColor[]) => void;
   onSetPrimaryDirect: (imgUrl: string) => void;
 }) {
   // If the product has a primary image but no colors array yet, initialize with the primary image
@@ -1650,7 +1737,7 @@ function ProductImageMediaManager({
     colors.length > 0
       ? colors
       : primaryImage
-      ? [{ id: "media-1", name: "اللون الأساسي", hex: "#8B102F", image: primaryImage }]
+      ? [{ id: "media-1", name: "اللون الأساسي", hex: "#8B102F", image: primaryImage, galleryImages: [] }]
       : [];
 
   const handleAddImage = () => {
@@ -1660,6 +1747,7 @@ function ProductImageMediaManager({
       name: nextIndex === 1 ? "اللون الأساسي" : `لون ${nextIndex}`,
       hex: "#8B102F",
       image: "",
+      galleryImages: [],
     };
     onChange([...mediaList, newItem]);
   };
@@ -1684,6 +1772,16 @@ function ProductImageMediaManager({
       i === index ? { ...item, [field]: val } : item
     );
     onChange(updated);
+  };
+
+  const handleUpdateGalleryImages = (colorIndex: number, galleryImages: string[]) => {
+    onChange(mediaList.map((item, index) => index === colorIndex ? { ...item, galleryImages } : item));
+  };
+
+  const handleUpdateGalleryImage = (colorIndex: number, imageIndex: number, image: string) => {
+    const galleryImages = [...(mediaList[colorIndex].galleryImages ?? [])];
+    galleryImages[imageIndex] = image;
+    handleUpdateGalleryImages(colorIndex, galleryImages);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -1737,12 +1835,13 @@ function ProductImageMediaManager({
             return (
               <div
                 key={item.id || index}
-                className={`flex flex-col gap-2 rounded-md border p-2.5 transition sm:flex-row sm:items-center ${
+                className={`rounded-md border p-2.5 transition ${
                   isPrimary
                     ? "border-[#8B102F] bg-white shadow-2xs ring-1 ring-[#8B102F]/20"
                     : "border-[#e1e3e5] bg-white"
                 }`}
               >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 {/* Primary Tag & Thumbnail Preview */}
                 <div className="flex items-center gap-2">
                   <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded border border-[#e1e3e5] bg-[#fafbfb]">
@@ -1812,6 +1911,40 @@ function ProductImageMediaManager({
                 >
                   <FiTrash2 className="h-4 w-4" />
                 </button>
+                </div>
+
+                <div className="mt-2 border-t border-neutral-100 pt-2">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-semibold text-[#6d7175]">صور إضافية لهذا اللون</span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateGalleryImages(index, [...(item.galleryImages ?? []), ""])}
+                      className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8B102F] hover:underline"
+                    >
+                      <FiPlus className="h-3 w-3" />
+                      إضافة صورة
+                    </button>
+                  </div>
+                  {(item.galleryImages ?? []).map((galleryImage, galleryIndex) => (
+                    <div key={galleryIndex} className="mb-1.5 flex items-center gap-2 last:mb-0">
+                      <input
+                        type="url"
+                        value={galleryImage}
+                        placeholder={`رابط الصورة الإضافية ${galleryIndex + 1}`}
+                        onChange={(event) => handleUpdateGalleryImage(index, galleryIndex, event.target.value)}
+                        className="h-8 min-w-0 flex-1 rounded border border-[#c9cccf] px-2.5 text-xs outline-none focus:border-[#8B102F]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateGalleryImages(index, (item.galleryImages ?? []).filter((_, imageIndex) => imageIndex !== galleryIndex))}
+                        aria-label={`حذف الصورة الإضافية ${galleryIndex + 1}`}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-[#8c9196] hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <FiTrash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })}

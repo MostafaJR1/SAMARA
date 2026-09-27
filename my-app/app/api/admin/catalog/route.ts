@@ -8,6 +8,7 @@ const colorSchema = z.object({
   name: z.string().min(1),
   hex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   image: z.string().url(),
+  galleryImages: z.array(z.string().url()).optional(),
 });
 
 const productSchema = z.object({
@@ -19,6 +20,7 @@ const productSchema = z.object({
   oldPrice: z.number().int().nonnegative().nullable().optional(),
   discount: z.number().int().nonnegative(),
   rating: z.number().min(0).max(5),
+  isFeatured: z.boolean().default(false),
   isCouponEligible: z.boolean().default(true),
   badge: z.string().trim().max(80).nullable().optional(),
   description: z.string().trim().max(2000),
@@ -90,6 +92,13 @@ function normalizeColors(value: unknown) {
       name,
       hex: typeof entry.hex === "string" ? entry.hex : "#8B102F",
       image,
+      galleryImages: Array.isArray(entry.galleryImages)
+        ? entry.galleryImages.flatMap((galleryImage) => {
+            if (typeof galleryImage !== "string") return [];
+            const normalizedImage = galleryImage.trim();
+            return /^https?:\/\//i.test(normalizedImage) ? [normalizedImage] : [];
+          })
+        : [],
     }];
   });
 }
@@ -109,6 +118,13 @@ export async function POST(request: Request) {
     const body = await request.json() as { kind?: string; data?: unknown };
     if (body.kind === "product") {
       const product = productSchema.parse({ ...(body.data as object), colors: normalizeColors((body.data as { colors?: unknown })?.colors) });
+      if (product.isFeatured) {
+        const { error: clearError } = await auth.supabase
+          .from("products")
+          .update({ is_featured: false })
+          .eq("is_featured", true);
+        if (clearError) throw clearError;
+      }
       const { data, error } = await auth.supabase.from("products").insert({
         id: product.id ?? `product-${randomUUID()}`,
         name: product.name,
@@ -118,6 +134,7 @@ export async function POST(request: Request) {
         old_price: product.oldPrice ?? null,
         discount: product.discount,
         rating: product.rating,
+        is_featured: product.isFeatured,
         is_coupon_eligible: product.isCouponEligible,
         badge: product.badge ?? null,
         description: product.description,
@@ -182,7 +199,15 @@ export async function PATCH(request: Request) {
 
     if (body.kind === "product") {
       const product = productSchema.parse({ ...(body.data as object), id: body.id, colors: normalizeColors((body.data as { colors?: unknown })?.colors) });
-      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
+      if (product.isFeatured) {
+        const { error: clearError } = await auth.supabase
+          .from("products")
+          .update({ is_featured: false })
+          .eq("is_featured", true)
+          .neq("id", body.id);
+        if (clearError) throw clearError;
+      }
+      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_featured: product.isFeatured, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
       if (error) throw error;
       return NextResponse.json({ ok: true });
     }

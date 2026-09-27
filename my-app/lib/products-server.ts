@@ -1,7 +1,8 @@
 import { ProductsData } from "@/data/Products";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-type Product = (typeof ProductsData)[number] & {
+type ProductColor = (typeof ProductsData)[number]["colors"][number] & { galleryImages?: string[] };
+type Product = Omit<(typeof ProductsData)[number], "colors"> & { colors: ProductColor[] } & {
   isFeatured: boolean;
   is_featured: boolean;
   is_coupon_eligible: boolean;

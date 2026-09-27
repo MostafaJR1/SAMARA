@@ -19,7 +19,8 @@ import { WishlistButton } from "@/components/WishlistButton";
 import { getPackSavings, getPackStock, type Pack } from "@/data/Packs";
 import { addPackToCart, addProductToCart } from "@/lib/cart";
 
-type Product = (typeof ProductsData)[number];
+type ProductColor = (typeof ProductsData)[number]["colors"][number] & { galleryImages?: string[] };
+type Product = Omit<(typeof ProductsData)[number], "colors"> & { colors: ProductColor[] };
 
 function getRecommendedProducts(product: Product, products: Product[]) {
   return products
@@ -67,7 +68,14 @@ export function ProductDetails({
       image: product.image,
     };
   const [selectedColor, setSelectedColor] = useState(fallbackColor);
+  const [selectedImage, setSelectedImage] = useState(fallbackColor.image);
   const [added, setAdded] = useState(false);
+  const galleryImages = Array.from(new Set([selectedColor.image, ...(selectedColor.galleryImages ?? [])].filter(Boolean)));
+
+  function selectColor(color: ProductColor) {
+    setSelectedColor(color);
+    setSelectedImage(color.image);
+  }
 
   const total = product.price * quantity;
   const hasOldPrice = Boolean(product.oldPrice && product.oldPrice > product.price);
@@ -145,7 +153,7 @@ export function ProductDetails({
               {/* Main Image */}
               <div className="relative aspect-square w-full overflow-hidden bg-[#faf8f9]">
                 <Image
-                  src={selectedColor.image}
+                  src={selectedImage}
                   alt={`${product.name} - ${selectedColor.name}`}
                   fill
                   priority
@@ -167,16 +175,16 @@ export function ProductDetails({
             </div>
 
             {/* Thumbnail Variant Selector */}
-            {product.colors.length > 1 && (
+            {galleryImages.length > 1 && (
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {product.colors.map((color) => {
-                  const selected = selectedColor.id === color.id;
+                {galleryImages.map((image, index) => {
+                  const selected = selectedImage === image;
                   return (
                     <button
-                      key={color.id}
+                      key={image}
                       type="button"
-                      onClick={() => setSelectedColor(color)}
-                      aria-label={`عرض اللون ${color.name}`}
+                      onClick={() => setSelectedImage(image)}
+                      aria-label={`عرض الصورة ${index + 1} للون ${selectedColor.name}`}
                       aria-pressed={selected}
                       className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-[#faf8f9] transition-all ${
                         selected
@@ -185,15 +193,11 @@ export function ProductDetails({
                       }`}
                     >
                       <Image
-                        src={color.image}
-                        alt={color.name}
+                        src={image}
+                        alt={`${product.name} - ${selectedColor.name} - ${index + 1}`}
                         fill
                         sizes="72px"
                         className="object-cover"
-                      />
-                      <span
-                        className="absolute bottom-1 right-1 h-3 w-3 rounded-full border border-white shadow-2xs"
-                        style={{ backgroundColor: color.hex }}
                       />
                     </button>
                   );
@@ -270,7 +274,7 @@ export function ProductDetails({
                         <button
                           key={color.id}
                           type="button"
-                          onClick={() => setSelectedColor(color)}
+                          onClick={() => selectColor(color)}
                           aria-label={`اختيار اللون ${color.name}`}
                           aria-pressed={selected}
                           className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${

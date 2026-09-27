@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiArrowLeft, FiCheck, FiLoader } from "react-icons/fi";
+import { FiArrowLeft, FiLoader } from "react-icons/fi";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Mode = "sign-in" | "sign-up";
@@ -42,30 +42,79 @@ export function AuthForm() {
   }
 
   return (
-    <section className="w-full max-w-md border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-      <div className="flex items-center justify-between border-b border-neutral-200 pb-5">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">حساب سامارا</p>
-          <h1 className="mt-2 text-2xl font-black">{mode === "sign-in" ? "مرحباً بعودتك" : "أنشئ حسابك"}</h1>
+    <section className="w-full max-w-md overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm">
+      <div className="p-6 sm:p-8">
+        <div className="mb-6 text-center">
+          <p aria-hidden="true" className="font-ruwudu text-4xl leading-none text-[#8B102F]">س</p>
+          <h1 className="mt-2 font-tajawal text-xl font-bold text-neutral-950">
+            {mode === "sign-in" ? "مرحباً بك في حسابك" : "إنشاء حساب جديد"}
+          </h1>
         </div>
-        {mode === "sign-up" && <FiCheck className="h-5 w-5 text-neutral-500" />}
+
+        <form onSubmit={submit} className="space-y-4">
+          {mode === "sign-up" && (
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-bold text-neutral-700">الاسم</span>
+              <input
+                required
+                autoComplete="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className="h-10 w-full rounded-sm border border-neutral-300 bg-white px-3 text-[13px] outline-none transition placeholder:text-neutral-400 focus:border-[#8B102F] focus:ring-2 focus:ring-[#8B102F]/10"
+              />
+            </label>
+          )}
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-bold text-neutral-700">البريد الإلكتروني</span>
+            <input
+              required
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="h-10 w-full rounded-sm border border-neutral-300 bg-white px-3 text-[13px] outline-none transition placeholder:text-neutral-400 focus:border-[#8B102F] focus:ring-2 focus:ring-[#8B102F]/10"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-[11px] font-bold text-neutral-700">كلمة المرور</span>
+            <input
+              required
+              minLength={6}
+              type="password"
+              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="h-10 w-full rounded-sm border border-neutral-300 bg-white px-3 text-[13px] outline-none transition placeholder:text-neutral-400 focus:border-[#8B102F] focus:ring-2 focus:ring-[#8B102F]/10"
+            />
+          </label>
+          {error && <p role="alert" className="text-[11px] leading-4 text-red-700">{error}</p>}
+          {message && <p role="status" className="text-[11px] leading-4 text-[#8B102F]">{message}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-sm bg-[#8B102F] text-[11px] font-bold text-white transition hover:bg-[#740D28] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B102F] disabled:cursor-wait disabled:opacity-60"
+          >
+            {loading && <FiLoader aria-hidden="true" className="h-4 w-4 animate-spin" />}
+            {mode === "sign-in" ? "تسجيل الدخول" : "إنشاء الحساب"}
+          </button>
+        </form>
       </div>
 
-      <form onSubmit={submit} className="mt-6 space-y-4">
-        {mode === "sign-up" && <label className="block"><span className="mb-1.5 block text-xs font-bold">الاسم</span><input required value={name} onChange={(event) => setName(event.target.value)} className="h-11 w-full border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950" /></label>}
-        <label className="block"><span className="mb-1.5 block text-xs font-bold">البريد الإلكتروني</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-11 w-full border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950" /></label>
-        <label className="block"><span className="mb-1.5 block text-xs font-bold">كلمة المرور</span><input required minLength={6} type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-11 w-full border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950" /></label>
-        {error && <p className="text-xs text-red-600">{error}</p>}
-        {message && <p className="text-xs font-semibold text-neutral-700">{message}</p>}
-        <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 bg-neutral-950 text-xs font-bold text-white transition hover:bg-neutral-800 disabled:opacity-50">
-          {loading ? <FiLoader className="h-4 w-4 animate-spin" /> : mode === "sign-in" ? "تسجيل الدخول" : "إنشاء الحساب"}
+      <div className="border-t border-neutral-100 bg-neutral-50/70 px-6 py-4 text-center sm:px-8">
+        <button
+          type="button"
+          onClick={() => {
+            setMode((current) => current === "sign-in" ? "sign-up" : "sign-in");
+            setError("");
+            setMessage("");
+          }}
+          disabled={loading}
+          className="disabled:cursor-not-allowed disabled:opacity-60 inline-flex items-center cursor-pointer justify-center gap-2 text-[11px] font-bold text-[#8B102F] transition hover:text-[#650B22] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8B102F]"
+        >
+          {mode === "sign-in" ? "إنشاء حساب جديد" : "لديك حساب؟ تسجيل الدخول"}
+          <FiArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
         </button>
-      </form>
-
-      <button type="button" onClick={() => { setMode((current) => current === "sign-in" ? "sign-up" : "sign-in"); setError(""); setMessage(""); }} className="mt-5 flex w-full items-center justify-center gap-2 text-xs font-bold text-neutral-500 hover:text-neutral-950">
-        {mode === "sign-in" ? "إنشاء حساب جديد" : "لديك حساب؟ تسجيل الدخول"}
-        <FiArrowLeft className="h-3.5 w-3.5" />
-      </button>
+      </div>
     </section>
   );
 }
