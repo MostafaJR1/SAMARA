@@ -13,9 +13,8 @@ import {
   FiTrash2,
   FiX,
 } from "react-icons/fi";
-import type { ProductsData } from "@/data/Products";
-import type { Pack } from "@/data/Packs";
-import { getPackStock } from "@/data/Packs";
+import { getPackStock } from "@/lib/packs";
+import type { Pack, Product } from "@/types/catalog";
 import {
   CART_COUPON_STORAGE_KEY,
   CART_STORAGE_KEY,
@@ -27,12 +26,12 @@ import {
   type CartItem as StoredCartItem,
 } from "@/lib/cart";
 
-type Product = (typeof ProductsData)[number] & {
+type CartProduct = Product & {
   is_coupon_eligible?: boolean;
 };
 
 type CartItem =
-  | { entry: Extract<StoredCartItem, { type: "product" }>; product: Product }
+  | { entry: Extract<StoredCartItem, { type: "product" }>; product: CartProduct }
   | { entry: Extract<StoredCartItem, { type: "pack" }>; pack: Pack };
 
 type ActiveCoupon = {
@@ -103,28 +102,10 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
   const items: CartItem[] = storedCartSnapshot
     ? resolveCartItems(storedItems, products, packs).map((resolved) =>
         "product" in resolved
-          ? { entry: resolved.item, product: resolved.product as Product }
+          ? { entry: resolved.item, product: resolved.product }
           : { entry: resolved.item, pack: resolved.pack },
       )
-    : products.slice(0, 2).map((product) => ({
-        entry: { type: "product", productId: product.id, quantity: 1 },
-        product,
-      }));
-
-  useEffect(() => {
-    if (window.localStorage.getItem(CART_STORAGE_KEY) === null) {
-      window.localStorage.setItem(
-        CART_STORAGE_KEY,
-        JSON.stringify(
-          products.slice(0, 2).map((product) => ({
-            type: "product",
-            productId: product.id,
-            quantity: 1,
-          })),
-        ),
-      );
-    }
-  }, [products]);
+    : [];
 
   // Form & Coupon States
   const [couponInput, setCouponInput] = useState("");
@@ -330,27 +311,15 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
           ? {
               type: "product" as const,
               productId: item.product.id,
-              productName: item.product.name,
               quantity: item.entry.quantity,
-              unitPrice: item.product.price,
             }
           : {
               type: "pack" as const,
               packId: item.pack.id,
-              packName: item.pack.name,
               quantity: item.entry.quantity,
-              unitPrice: item.pack.price,
-              contents: item.pack.items.map((packItem) => ({
-                productId: packItem.product.id,
-                quantity: packItem.quantity,
-              })),
             },
       ),
       coupon: coupon?.code ?? null,
-      subtotal,
-      discount,
-      shipping,
-      total,
     };
 
     try {
@@ -711,7 +680,7 @@ function CustomerField({
 
 function EmptyCart() {
   return (
-    <div className="mx-auto flex max-w-sm flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 py-16 text-center">
+    <div className="w-full mx-auto flex flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 py-16 text-center">
       <FiShoppingBag className="h-8 w-8 text-neutral-400" />
       <h2 className="mt-4 text-base font-black text-neutral-950">سلتك فارغة</h2>
       <p className="mt-1 text-xs text-neutral-500">

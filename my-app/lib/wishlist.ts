@@ -27,6 +27,15 @@ export function getWishlistIds(snapshot: string) {
   }
 }
 
+export function pruneWishlist(validProductIds: ReadonlySet<string>) {
+  const ids = getWishlistIds(getWishlistSnapshot());
+  const activeIds = ids.filter((id) => validProductIds.has(id));
+  if (activeIds.length !== ids.length) {
+    window.localStorage.setItem(WISHLIST_KEY, JSON.stringify(activeIds));
+    window.dispatchEvent(new Event(WISHLIST_EVENT));
+  }
+}
+
 export function toggleWishlist(productId: string) {
   const ids = getWishlistIds(getWishlistSnapshot());
   const nextIds = ids.includes(productId) ? ids.filter((id) => id !== productId) : [...ids, productId];

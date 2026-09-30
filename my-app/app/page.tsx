@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -16,6 +17,21 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { getProductsFromDatabase } from "@/lib/products-server";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 import { FaCheckCircle } from "react-icons/fa";
+import { createPageMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getProductsFromDatabase();
+  const featuredProduct = products.find((product) => product.isFeatured) ?? products[0];
+
+  return createPageMetadata({
+    title: "متجر سمارة المغربي للمنتجات المنزلية",
+    description: featuredProduct
+      ? `تعرّف على ${featuredProduct.name} واكتشف منتجات منزلية وباقات مختارة في متجر سمارة، مع الشحن المجاني والدفع عند الاستلام في المغرب.`
+      : "اكتشف منتجات منزلية وباقات مختارة في متجر سمارة، مع الشحن المجاني والدفع عند الاستلام في المغرب.",
+    path: "/",
+    ...(featuredProduct ? { image: featuredProduct.image, imageAlt: featuredProduct.name } : {}),
+  });
+}
 
 export default async function Home() {
   const products = await getProductsFromDatabase();
@@ -60,7 +76,7 @@ export default async function Home() {
                 src={featuredProduct.image}
                 alt={featuredProduct.name}
                 fill
-                priority
+                loading="eager"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover"
               />
@@ -163,6 +179,7 @@ export default async function Home() {
                     src={featuredProduct.image}
                     alt={featuredProduct.name}
                     fill
+                    loading="eager"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover"
                   />

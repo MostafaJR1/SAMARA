@@ -14,13 +14,10 @@ import {
   FiChevronLeft,
   FiArrowLeft,
 } from "react-icons/fi";
-import type { ProductsData } from "@/data/Products";
+import type { Pack, Product, ProductColor } from "@/types/catalog";
 import { WishlistButton } from "@/components/WishlistButton";
-import { getPackSavings, getPackStock, type Pack } from "@/data/Packs";
+import { getPackSavings, getPackStock } from "@/lib/packs";
 import { addPackToCart, addProductToCart } from "@/lib/cart";
-
-type ProductColor = (typeof ProductsData)[number]["colors"][number] & { galleryImages?: string[] };
-type Product = Omit<(typeof ProductsData)[number], "colors"> & { colors: ProductColor[] };
 
 function getRecommendedProducts(product: Product, products: Product[]) {
   return products
@@ -156,7 +153,7 @@ export function ProductDetails({
                   src={selectedImage}
                   alt={`${product.name} - ${selectedColor.name}`}
                   fill
-                  priority
+                  loading="eager"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-contain p-3 transition-transform duration-300 hover:scale-[1.015] sm:p-5"
                 />
@@ -165,9 +162,9 @@ export function ProductDetails({
 
             {/* Stock Availability */}
             <div className="mt-2 flex items-center justify-between px-1 text-[10px] sm:text-[11px]">
-              <span className="flex items-center gap-1.5 font-bold text-[#8B102F]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#8B102F]" />
-                متوفر في المخزون
+              <span className={`flex items-center gap-1.5 font-bold ${product.stock > 0 ? "text-[#8B102F]" : "text-red-700"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${product.stock > 0 ? "bg-[#8B102F]" : "bg-red-700"}`} />
+                {product.stock > 0 ? "متوفر في المخزون" : "نفد المخزون"}
               </span>
               <span className="text-neutral-500">
                 متبقي <strong className="text-neutral-900">{product.stock}</strong> قطع فقط
@@ -219,10 +216,12 @@ export function ProductDetails({
                     {product.category}
                   </span>
                   <span className="text-neutral-300">•</span>
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-700">
-                    <FiStar className="h-3 w-3 fill-[#8B102F] text-[#8B102F]" />
-                    <span>{product.rating || "5.0"}</span>
-                  </div>
+                  {product.rating > 0 && (
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-700">
+                      <FiStar className="h-3 w-3 fill-[#8B102F] text-[#8B102F]" />
+                      <span>{product.rating}</span>
+                    </div>
+                  )}
                 </div>
 
                 <WishlistButton productId={product.id} />

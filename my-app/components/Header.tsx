@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import Image from "next/image";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { FiHeart, FiMenu, FiSearch, FiShoppingBag, FiTruck, FiUser, FiX } from "react-icons/fi";
-import { ProductsData } from "@/data/Products";
-import { CART_UPDATED_EVENT, getCartItems } from "@/lib/cart";
-import { getServerWishlistSnapshot, getWishlistIds, getWishlistSnapshot, subscribeToWishlist } from "@/lib/wishlist";
+import { CART_UPDATED_EVENT, getCartItems, pruneCartItems } from "@/lib/cart";
+import { getServerWishlistSnapshot, getWishlistIds, getWishlistSnapshot, pruneWishlist, subscribeToWishlist } from "@/lib/wishlist";
+import { rankProducts } from "../lib/product-search";
+import type { Pack, Product } from "@/types/catalog";
 
 const navigation = [
   { label: "الرئيسية", href: "/" },
@@ -20,22 +22,42 @@ function subscribeToCart(onChange: () => void) {
   return () => window.removeEventListener(CART_UPDATED_EVENT, onChange);
 }
 
-function getCartCount() {
-  return getCartItems().reduce((total, item) => total + item.quantity, 0);
+function getCartCount(productIds: ReadonlySet<string>, packIds: ReadonlySet<string>) {
+  return getCartItems().reduce((total, item) => {
+    const isAvailable = item.type === "product"
+      ? productIds.has(item.productId)
+      : packIds.has(item.packId);
+    return total + (isAvailable ? item.quantity : 0);
+  }, 0);
 }
 
 function getServerCartCount() {
   return 0;
 }
 
-export function Header({ accountHref, accountLabel }: { accountHref: string; accountLabel: string }) {
+export function Header({ accountHref, accountLabel, products, packs }: { accountHref: string; accountLabel: string; products: Product[]; packs: Pack[] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const cartCount = useSyncExternalStore(subscribeToCart, getCartCount, getServerCartCount);
+  const productIds = new Set(products.map((product) => product.id));
+  const packIds = new Set(packs.map((pack) => pack.id));
+  const productIdsKey = JSON.stringify([...productIds]);
+  const packIdsKey = JSON.stringify([...packIds]);
+  const cartCount = useSyncExternalStore(
+    subscribeToCart,
+    () => getCartCount(productIds, packIds),
+    getServerCartCount,
+  );
   const wishlistSnapshot = useSyncExternalStore(subscribeToWishlist, getWishlistSnapshot, getServerWishlistSnapshot);
-  const wishlistCount = getWishlistIds(wishlistSnapshot).length;
-  const results = ProductsData.filter((product) => `${product.name} ${product.category}`.includes(query)).slice(0, 5);
+  const wishlistCount = getWishlistIds(wishlistSnapshot).filter((id) => productIds.has(id)).length;
+  const results = rankProducts(products, query).slice(0, 6);
+
+  useEffect(() => {
+    const validProductIds = new Set(JSON.parse(productIdsKey) as string[]);
+    const validPackIds = new Set(JSON.parse(packIdsKey) as string[]);
+    pruneCartItems(validProductIds, validPackIds);
+    pruneWishlist(validProductIds);
+  }, [productIdsKey, packIdsKey]);
 
   return (
     <>
@@ -44,18 +66,20 @@ export function Header({ accountHref, accountLabel }: { accountHref: string; acc
           <FiTruck aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
           <span>الشحن مجاني على جميع الطلبات</span>
         </div>
-        <div className="mx-auto flex h-11 max-w-7xl items-center justify-between gap-3 px-4 sm:h-12 sm:px-6 lg:px-8">
+        <div className="relative mx-auto flex h-11 max-w-7xl items-center justify-between gap-3 px-4 sm:h-12 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 lg:gap-6">
             <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="فتح القائمة" aria-expanded={mobileMenuOpen} aria-controls="mobile-navigation" className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 lg:hidden">
               <FiMenu className="h-4 w-4" />
             </button>
-            <Link href="/" className="font-ruwudu text-lg font-black text-neutral-950 sm:text-xl">سمارة</Link>
             <nav aria-label="التنقل الرئيسي" className="hidden lg:block">
               <ul className="flex items-center gap-4 text-xs font-semibold">
                 {navigation.map((item) => <li key={item.href}><Link href={item.href} className="text-neutral-600 transition hover:text-neutral-950">{item.label}</Link></li>)}
               </ul>
             </nav>
           </div>
+          <Link href="/" aria-label="سمارة - الرئيسية" className="absolute left-1/2 flex h-15 w-15 -translate-x-1/2 items-center justify-center">
+            <Image src="/SAMARA-LOGO.png" alt="سمارة" width={46} height={46} loading="eager" className="h-15 w-15 object-contain" />
+          </Link>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => setSearchOpen(true)} aria-label="البحث" className="flex h-7 w-7 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"><FiSearch className="h-4 w-4" /></button>
             <Link href="/wishlist" aria-label={`المفضلة (${wishlistCount})`} className="relative flex h-8 w-8 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100"><FiHeart className="h-4 w-4" />{wishlistCount > 0 && <span className="absolute -left-0.5 -top-0.5 rounded-full bg-[#8B102F] px-1 text-[8px] text-white">{wishlistCount}</span>}</Link>
@@ -66,9 +90,29 @@ export function Header({ accountHref, accountLabel }: { accountHref: string; acc
       </header>
 
       {searchOpen && <div className="fixed inset-0 z-50 bg-black/40 p-4 pt-14" onMouseDown={(event) => { if (event.target === event.currentTarget) setSearchOpen(false); }}>
-        <section dir="rtl" className="mx-auto max-w-lg overflow-hidden rounded-md bg-white shadow-xl">
+        <section dir="rtl" role="dialog" aria-modal="true" aria-label="البحث عن المنتجات" className="mx-auto max-h-[75vh] max-w-lg overflow-hidden rounded-md bg-white shadow-xl">
           <div className="flex items-center gap-2 border-b border-neutral-200 p-3"><FiSearch className="h-4 w-4 text-neutral-400" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث عن منتج..." className="flex-1 text-xs outline-none" /><button type="button" onClick={() => setSearchOpen(false)} aria-label="إغلاق"><FiX className="h-4 w-4" /></button></div>
-          <div className="p-2">{results.map((product) => <Link key={product.id} href={`/products/${product.id}`} onClick={() => setSearchOpen(false)} className="block rounded p-2 text-xs hover:bg-neutral-50">{product.name}</Link>)}</div>
+          <div className="max-h-[calc(75vh-3.5rem)] overflow-y-auto p-2">
+            <p className="px-2 pb-1 text-[10px] font-bold text-neutral-500">{query.trim() ? "نتائج مقترحة" : "اقتراحات لك"}</p>
+            {results.length > 0 ? (
+              <ul aria-label="اقتراحات المنتجات" className="divide-y divide-neutral-100">
+                {results.map((product: Product) => (
+                  <li key={product.id}>
+                    <Link href={`/products/${product.id}`} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 rounded p-2 text-right transition hover:bg-neutral-50">
+                      <Image src={product.image} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded bg-neutral-50 object-contain p-1" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-bold text-neutral-900">{product.name}</span>
+                        <span className="mt-1 block truncate text-[10px] text-neutral-500">{product.category}</span>
+                      </span>
+                      <span className="shrink-0 text-[10px] font-bold text-[#8B102F]">{product.price.toLocaleString("ar-MA")} د.م</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-2 py-6 text-center text-xs text-neutral-500">لم نعثر على منتجات مطابقة.</p>
+            )}
+          </div>
         </section>
       </div>}
 
@@ -84,7 +128,7 @@ export function Header({ accountHref, accountLabel }: { accountHref: string; acc
           className={`absolute right-0 top-0 h-full w-[80%] max-w-xs bg-white p-4 shadow-xl transition-transform duration-300 ease-out motion-reduce:transition-none ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-neutral-100 pb-4"><span className="font-ruwudu text-lg font-black">سمارة</span><button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="إغلاق"><FiX /></button></div>
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-4"><Link href="/" aria-label="سمارة - الرئيسية"><Image src="/SAMARA-LOGO.png" alt="سمارة" width={40} height={40} className="h-10 w-10 object-contain" /></Link><button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="إغلاق"><FiX /></button></div>
           <nav className="mt-4"><ul className="space-y-1">{navigation.map((item) => <li key={item.href}><Link href={item.href} onClick={() => setMobileMenuOpen(false)} className="block rounded-md px-3 py-3 text-xs font-bold hover:bg-neutral-50">{item.label}</Link></li>)}</ul></nav>
         </aside>
       </div>

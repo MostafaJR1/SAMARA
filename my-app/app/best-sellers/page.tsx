@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FiArrowLeft, FiTrendingUp } from "react-icons/fi";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { getBestSellingProducts } from "@/lib/best-sellers";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "الأكثر مبيعاً | سمارة",
-  description: "اكتشف المنتجات الأكثر طلباً في متجر سمارة.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getBestSellingProducts();
+
+  return createPageMetadata({
+    title: "المنتجات الأكثر مبيعاً",
+    description: `تعرّف على المنتجات الأكثر طلباً في متجر سمارة، وتصفح ${products.length} من المنتجات المتاحة وفق بيانات الطلبات الحالية.`,
+    path: "/best-sellers",
+  });
+}
 
 export default async function BestSellersPage() {
   const products = await getBestSellingProducts();

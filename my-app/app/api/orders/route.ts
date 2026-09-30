@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { createOrderSchema, type CreateOrderInput } from "@/lib/orders";
-import { ProductsData } from "@/data/Products";
-import { PacksData } from "@/data/Packs";
 
 type DbProduct = {
   id: string | number;
@@ -60,62 +58,33 @@ async function buildAuthoritativeOrder(
   const dbProducts = (dbProductsRes.data ?? []) as DbProduct[];
   const dbPacks = (dbPacksRes.data ?? []) as DbPack[];
 
-  // 2. Resolve authoritative items (DB first, then static mock fallback)
+  // Resolve every cart item from the database; client-supplied prices are never authoritative.
   const items = input.items.map((item) => {
     if (item.type === "product") {
       const dbProduct = dbProducts.find((p) => String(p.id) === String(item.productId));
-      const staticProduct = ProductsData.find((p) => String(p.id) === String(item.productId));
-      const product = dbProduct || staticProduct;
-
-      if (!product) {
-        if ("productName" in item && "unitPrice" in item && item.unitPrice > 0) {
-          return {
-            type: "product" as const,
-            productId: item.productId,
-            productName: item.productName,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          };
-        }
-        throw new Error(`PRODUCT_UNAVAILABLE: ${item.productId}`);
-      }
+      if (!dbProduct || dbProduct.is_active === false) throw new Error(`PRODUCT_UNAVAILABLE: ${item.productId}`);
 
       return {
         type: "product" as const,
-        productId: product.id,
-        productName: product.name,
+        productId: dbProduct.id,
+        productName: dbProduct.name,
         quantity: item.quantity,
-        unitPrice: product.price,
+        unitPrice: dbProduct.price,
       };
     }
 
-    // Pack resolution
     const dbPack = dbPacks.find((p) => String(p.id) === String(item.packId));
-    if (dbPack && dbPack.is_active === false) {
+    if (!dbPack || dbPack.is_active === false || !dbPack.pack_items?.length) {
       throw new Error(`PACK_UNAVAILABLE: ${item.packId}`);
     }
-    const staticPack = PacksData.find((p) => String(p.id) === String(item.packId));
-    const pack = dbPack || staticPack;
-
-    const packName = pack?.name ?? ("packName" in item ? item.packName : "باقة خاصة");
-    const unitPrice = pack?.price ?? ("unitPrice" in item ? item.unitPrice : 0);
-
-    const contents =
-      pack && "pack_items" in pack && Array.isArray(pack.pack_items)
-        ? pack.pack_items.map((pi) => ({ productId: pi.product_id, quantity: pi.quantity }))
-        : pack && "items" in pack && Array.isArray(pack.items)
-        ? pack.items.map((pi) => ({ productId: pi.product.id, quantity: pi.quantity }))
-        : "contents" in item && Array.isArray(item.contents)
-        ? item.contents
-        : [];
 
     return {
       type: "pack" as const,
       packId: item.packId,
-      packName,
+      packName: dbPack.name,
       quantity: item.quantity,
-      unitPrice,
-      contents,
+      unitPrice: dbPack.price,
+      contents: dbPack.pack_items.map((packItem) => ({ productId: packItem.product_id, quantity: packItem.quantity })),
     };
   });
 

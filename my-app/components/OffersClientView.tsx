@@ -6,21 +6,17 @@ import Link from "next/link";
 import {
   FiArrowLeft,
   FiCheck,
-  FiCopy,
   FiCreditCard,
   FiPercent,
   FiShield,
   FiShoppingBag,
   FiStar,
-  FiTag,
   FiTruck,
 } from "react-icons/fi";
-import type { ProductsData } from "@/data/Products";
-import type { Pack } from "@/data/Packs";
+import type { Pack, Product } from "@/types/catalog";
 import { WishlistButton } from "@/components/WishlistButton";
 import { addProductToCart } from "@/lib/cart";
 
-type Product = (typeof ProductsData)[number];
 type TabFilter = "all" | "products" | "packs";
 
 export function OffersClientView({
@@ -31,14 +27,7 @@ export function OffersClientView({
   packs: Pack[];
 }) {
   const [activeTab, setActiveTab] = useState<TabFilter>("all");
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [addedProductId, setAddedProductId] = useState<string | number | null>(null);
-
-  function copyCoupon(code: string) {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
-  }
 
   function handleAddToCart(product: Product) {
     addProductToCart(product.id, 1, product);
@@ -67,75 +56,6 @@ export function OffersClientView({
           استفد من خصومات استثنائية على منتجاتنا المختارة وباقات التوفير المنسقة، مع شحن مجاني لباب المنزل والدفع عند الاستلام.
         </p>
       </div>
-
-      {/* 2. Active Promo Coupon Codes Bar */}
-      <section aria-label="كوبونات الخصم">
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
-          
-          {/* Coupon 1 */}
-          <div className="flex min-w-0 items-center justify-between gap-2.5 rounded-md border border-dashed border-[#d8aab6] bg-[#fdf9fa] p-3 sm:p-3.5">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#f7e9ed] text-[#8B102F]">
-                <FiTag className="h-3.5 w-3.5" />
-              </span>
-              <div className="min-w-0 text-right">
-                <p className="text-[11px] font-black text-neutral-900">خصم 10% إضافي</p>
-                <p className="truncate text-[10px] text-neutral-600">على جميع الطلبيات بدون حد أدنى</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => copyCoupon("SAMARA10")}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2.5 text-[10px] font-bold text-neutral-800 transition hover:border-[#8B102F] hover:text-[#8B102F]"
-            >
-              {copiedCode === "SAMARA10" ? (
-                <>
-                  <FiCheck className="h-3.5 w-3.5 text-[#8B102F]" />
-                  <span className="font-bold text-[#8B102F]">تم النسخ</span>
-                </>
-              ) : (
-                <>
-                  <FiCopy className="h-3.5 w-3.5" />
-                  <span>SAMARA10</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Coupon 2 */}
-          <div className="flex min-w-0 items-center justify-between gap-2.5 rounded-md border border-dashed border-[#d8aab6] bg-[#fdf9fa] p-3 sm:p-3.5">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#f7e9ed] text-[#8B102F]">
-                <FiTag className="h-3.5 w-3.5" />
-              </span>
-              <div className="min-w-0 text-right">
-                <p className="text-[11px] font-black text-neutral-900">خصم 15% للزبائن الجدد</p>
-                <p className="truncate text-[10px] text-neutral-600">عند أول تجربة شراء من متجرنا</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => copyCoupon("WELCOME15")}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2.5 text-[10px] font-bold text-neutral-800 transition hover:border-[#8B102F] hover:text-[#8B102F]"
-            >
-              {copiedCode === "WELCOME15" ? (
-                <>
-                  <FiCheck className="h-3.5 w-3.5 text-[#8B102F]" />
-                  <span className="font-bold text-[#8B102F]">تم النسخ</span>
-                </>
-              ) : (
-                <>
-                  <FiCopy className="h-3.5 w-3.5" />
-                  <span>WELCOME15</span>
-                </>
-              )}
-            </button>
-          </div>
-
-        </div>
-      </section>
 
       {/* 3. Filter Navigation Tabs */}
       <div className="border-b border-neutral-200 pb-3">

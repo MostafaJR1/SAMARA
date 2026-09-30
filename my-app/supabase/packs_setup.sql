@@ -42,41 +42,6 @@ create index if not exists pack_items_pack_id_idx on public.pack_items(pack_id);
 create index if not exists pack_items_product_id_idx on public.pack_items(product_id);
 create index if not exists packs_active_idx on public.packs(is_active);
 
-insert into public.products (id, name, category, image, price, stock)
-values
-  ('product-001', 'كنبة قابلة للنفخ', 'الأثاث', 'https://res.cloudinary.com/dipa1pgem/image/upload/v1789214530/ti0rsej64vzvma4fosf7.jpg', 899, 12),
-  ('product-002', 'كرسي مبطن عصري', 'الأثاث', 'https://res.cloudinary.com/dipa1pgem/image/upload/v1789217559/fdf2kwqemswn4itmzba1.png', 499, 8)
-on conflict (id) do update set
-  name = excluded.name,
-  category = excluded.category,
-  image = excluded.image,
-  price = excluded.price,
-  updated_at = now();
-
-insert into public.packs (id, name, slug, description, image, price, original_price, is_active)
-values (
-  'pack-001',
-  'باقة الراحة',
-  'baqat-al-raha',
-  'اختيارات متناسقة للراحة والأناقة، مجمعة لك في باقة واحدة.',
-  'https://res.cloudinary.com/dipa1pgem/image/upload/v1789214530/ti0rsej64vzvma4fosf7.jpg',
-  1249,
-  1398,
-  true
-)
-on conflict (id) do update set
-  name = excluded.name,
-  slug = excluded.slug,
-  description = excluded.description,
-  image = excluded.image,
-  price = excluded.price,
-  original_price = excluded.original_price,
-  updated_at = now();
-
-delete from public.pack_items where pack_id = 'pack-001';
-insert into public.pack_items (pack_id, product_id, quantity)
-values ('pack-001', 'product-001', 1), ('pack-001', 'product-002', 1);
-
 alter table public.order_items alter column product_id drop not null;
 alter table public.order_items add column if not exists item_type text not null default 'product';
 alter table public.order_items add column if not exists pack_id text references public.packs(id) on delete set null;
@@ -140,7 +105,6 @@ declare
   computed_discount integer := 0;
   computed_shipping integer := 0;
   coupon_code text;
-  coupon_percent integer := 0;
 begin
   for item in select value from jsonb_array_elements(p_order -> 'items')
   loop
@@ -187,10 +151,7 @@ begin
   end loop;
 
   coupon_code := nullif(upper(trim(p_order ->> 'coupon')), '');
-  if coupon_code = 'SAMARA10' then coupon_percent := 10;
-  elsif coupon_code = 'WELCOME15' then coupon_percent := 15;
-  end if;
-  computed_discount := round(computed_subtotal * coupon_percent / 100.0);
+  computed_discount := least(computed_subtotal, greatest(0, coalesce((p_order ->> 'discount')::integer, 0)));
 
   insert into public.orders (
     customer_name, customer_phone, customer_city, coupon_code,

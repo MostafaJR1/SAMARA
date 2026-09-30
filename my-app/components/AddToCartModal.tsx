@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiCheck, FiMinus, FiPlus, FiShoppingBag, FiTag, FiTrash2, FiX } from "react-icons/fi";
-import { getPackStock, PacksData, type Pack } from "@/data/Packs";
-import { ProductsData } from "@/data/Products";
+import { getPackStock } from "@/lib/packs";
+import type { Pack, Product } from "@/types/catalog";
 import {
   CART_ITEM_ADDED_EVENT,
   CART_COUPON_STORAGE_KEY,
@@ -17,7 +17,6 @@ import {
   updateCartItem,
   type CartItem,
   type CartItemAddedDetail,
-  type Product,
 } from "@/lib/cart";
 
 type CartPreviewProduct = Product & { is_coupon_eligible?: boolean };
@@ -28,12 +27,12 @@ type ActiveCoupon = {
   applicableProductIds: string[];
 };
 
-export function AddToCartModal() {
+export function AddToCartModal({ products: initialProducts, packs: initialPacks }: { products: Product[]; packs: Pack[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [addedName, setAddedName] = useState("");
-  const [products, setProducts] = useState<CartPreviewProduct[]>(ProductsData);
-  const [packs, setPacks] = useState<Pack[]>(PacksData);
+  const [products, setProducts] = useState<CartPreviewProduct[]>(initialProducts);
+  const [packs, setPacks] = useState<Pack[]>(initialPacks);
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<ActiveCoupon | null>(null);
   const [couponMessage, setCouponMessage] = useState("");

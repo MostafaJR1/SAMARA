@@ -1,7 +1,6 @@
-import type { Pack } from "@/data/Packs";
-import type { ProductsData } from "@/data/Products";
+import type { Pack, Product } from "@/types/catalog";
 
-export type Product = (typeof ProductsData)[number];
+export type { Product } from "@/types/catalog";
 
 export type ProductCartItem = {
   type: "product";
@@ -48,6 +47,14 @@ export function getCartItems() {
   } catch {
     return [] as CartItem[];
   }
+}
+
+export function pruneCartItems(productIds: ReadonlySet<string>, packIds: ReadonlySet<string>) {
+  const items = getCartItems();
+  const activeItems = items.filter((item) =>
+    item.type === "product" ? productIds.has(item.productId) : packIds.has(item.packId),
+  );
+  if (activeItems.length !== items.length) saveCartItems(activeItems);
 }
 
 function saveCartItems(items: CartItem[]) {

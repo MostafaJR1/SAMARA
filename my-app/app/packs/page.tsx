@@ -3,6 +3,19 @@ import Link from "next/link";
 import { FiArrowLeft } from "react-icons/fi";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 import { getProductsFromDatabase } from "@/lib/products-server";
+import { createPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getProductsFromDatabase();
+  const packs = await getPacksFromDatabase(products);
+
+  return createPageMetadata({
+    title: "الباقات المنسقة",
+    description: `استعرض ${packs.length} من الباقات المتاحة في متجر سمارة، مع تفاصيل المنتجات وسعر كل باقة.`,
+    path: "/packs",
+  });
+}
 
 export default async function PacksPage() {
   const products = await getProductsFromDatabase();

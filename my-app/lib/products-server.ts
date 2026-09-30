@@ -1,12 +1,6 @@
-import { ProductsData } from "@/data/Products";
+import { cache } from "react";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-
-type ProductColor = (typeof ProductsData)[number]["colors"][number] & { galleryImages?: string[] };
-type Product = Omit<(typeof ProductsData)[number], "colors"> & { colors: ProductColor[] } & {
-  isFeatured: boolean;
-  is_featured: boolean;
-  is_coupon_eligible: boolean;
-};
+import type { Product } from "@/types/catalog";
 type ProductRow = {
   id: string;
   name: string;
@@ -27,7 +21,7 @@ type ProductRow = {
   is_coupon_eligible?: boolean;
 };
 
-export async function getProductsFromDatabase(): Promise<Product[]> {
+export const getProductsFromDatabase = cache(async function getProductsFromDatabase(): Promise<Product[]> {
   try {
     const supabase = await getSupabaseServerClient();
     const { data, error } = await supabase
@@ -56,15 +50,6 @@ export async function getProductsFromDatabase(): Promise<Product[]> {
       }
     }
     const rows = productRows ?? [];
-    if (rows.length === 0) {
-      return ProductsData.map((product): Product => ({
-        ...product,
-        isFeatured: false,
-        is_featured: false,
-        is_coupon_eligible: true,
-      }));
-    }
-
     return rows.map((row): Product => ({
       id: row.id,
       name: row.name,
@@ -85,11 +70,6 @@ export async function getProductsFromDatabase(): Promise<Product[]> {
       is_coupon_eligible: row.is_coupon_eligible ?? true,
     }));
   } catch {
-    return ProductsData.map((product): Product => ({
-      ...product,
-      isFeatured: false,
-      is_featured: false,
-      is_coupon_eligible: true,
-    }));
+    return [];
   }
-}
+});

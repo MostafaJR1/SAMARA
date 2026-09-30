@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { OrderConfetti } from "@/components/OrderConfetti";
+import { createPrivatePageMetadata } from "@/lib/seo";
 import {
   FiArrowLeft,
   FiCheck,
@@ -9,6 +10,11 @@ import {
   FiShoppingBag,
   FiTruck,
 } from "react-icons/fi";
+
+export const metadata = createPrivatePageMetadata(
+  "تأكيد الطلب",
+  "تأكيد استلام طلبك من متجر سمارة.",
+);
 
 export default function OrderSuccessPage() {
   return (

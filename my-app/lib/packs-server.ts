@@ -1,5 +1,6 @@
-import { PacksData, type Pack } from "@/data/Packs";
-import { ProductsData } from "@/data/Products";
+import { cache } from "react";
+import type { Pack, Product } from "@/types/catalog";
+import { getProductsFromDatabase } from "@/lib/products-server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type PackRow = {
@@ -15,12 +16,9 @@ type PackRow = {
   pack_items: Array<{ product_id: string; quantity: number; product_url?: string | null }>;
 };
 
-export async function getPacksFromDatabase(products = ProductsData): Promise<Pack[]> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return PacksData.filter((pack) => pack.isActive);
-  }
-
+export const getPacksFromDatabase = cache(async function getPacksFromDatabase(products?: Product[]): Promise<Pack[]> {
   try {
+    const catalogProducts = products ?? await getProductsFromDatabase();
     const supabase = await getSupabaseServerClient();
     const { data, error } = await supabase
       .from("packs")
@@ -41,7 +39,7 @@ export async function getPacksFromDatabase(products = ProductsData): Promise<Pac
 
     const databasePacks = rows.flatMap((row) => {
       const items = row.pack_items.flatMap((item) => {
-        const product = products.find((candidate) => candidate.id === item.product_id);
+        const product = catalogProducts.find((candidate) => candidate.id === item.product_id);
         return product ? [{ product, quantity: item.quantity, productUrl: item.product_url ?? null }] : [];
       });
       if (items.length === 0) return [];
@@ -64,7 +62,7 @@ export async function getPacksFromDatabase(products = ProductsData): Promise<Pac
   } catch {
     return [];
   }
-}
+});
 
 export async function getPackFromDatabase(slug: string) {
   const packs = await getPacksFromDatabase();

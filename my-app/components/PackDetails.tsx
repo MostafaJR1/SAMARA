@@ -13,7 +13,8 @@ import {
   FiTruck,
 } from "react-icons/fi";
 import { addPackToCart } from "@/lib/cart";
-import { getPackSavings, getPackStock, type Pack } from "@/data/Packs";
+import { getPackSavings, getPackStock } from "@/lib/packs";
+import type { Pack } from "@/types/catalog";
 
 export function PackDetails({ pack }: { pack: Pack }) {
   const [quantity, setQuantity] = useState(1);
@@ -73,7 +74,7 @@ export function PackDetails({ pack }: { pack: Pack }) {
                   src={pack.image}
                   alt={pack.name}
                   fill
-                  priority
+                  loading="eager"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover transition-transform duration-500 hover:scale-[1.02]"
                 />
@@ -98,9 +99,9 @@ export function PackDetails({ pack }: { pack: Pack }) {
 
             {/* Availability Indicator */}
             <div className="mt-3 flex items-center justify-between px-1 text-[11px]">
-              <span className="flex items-center gap-1.5 font-bold text-emerald-700">
-                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
-                متوفر في المخزون
+              <span className={`flex items-center gap-1.5 font-bold ${stock > 0 ? "text-emerald-700" : "text-red-700"}`}>
+                <span className={`h-2 w-2 rounded-full ${stock > 0 ? "bg-emerald-600" : "bg-red-700"}`} />
+                {stock > 0 ? "متوفر في المخزون" : "نفدت الباقة"}
               </span>
               <span className="text-neutral-500">
                 متبقي <strong className="text-neutral-900">{stock}</strong> باقات فقط

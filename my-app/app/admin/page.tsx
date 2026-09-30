@@ -1,5 +1,11 @@
 import { AdminDashboard, type AdminOrder, type AdminPack, type AdminProduct } from "@/components/AdminDashboard";
 import { requireAdmin } from "@/lib/auth";
+import { createPrivatePageMetadata } from "@/lib/seo";
+
+export const metadata = createPrivatePageMetadata(
+  "لوحة الإدارة",
+  "واجهة خاصة بإدارة متجر سمارة.",
+);
 
 export default async function AdminPage() {
   const { supabase, user } = await requireAdmin();

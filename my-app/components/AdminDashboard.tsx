@@ -478,6 +478,8 @@ export function AdminDashboard({
         deleteRequest.ids.forEach((id) => knownOrderIds.current.delete(id));
       }
 
+      if (deleteRequest.kind === "product" || deleteRequest.kind === "pack") router.refresh();
+
       toast.success(deleteRequest.kind === "orders" ? `تم حذف ${deleteRequest.ids.length} طلبات` : "تم الحذف بنجاح");
       setDeleteRequest(null);
     } catch (error) {
@@ -619,9 +621,7 @@ export function AdminDashboard({
       <aside className="w-full shrink-0 border-b border-[#e1e3e5] bg-[#ebebeb] p-4 lg:w-60 lg:border-b-0 lg:border-l lg:p-3">
         <div className="flex items-center justify-between px-2 pb-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#303030] text-xs font-black text-white">
-              س
-            </div>
+            <Image src="/SAMARA-LOGO.png" alt="" width={32} height={32} className="h-8 w-8 object-contain" />
             <div>
               <p className="text-xs font-black text-[#202223]">متجر سمارة</p>
               <p className="text-[10px] text-[#6d7175]">لوحة القيادة</p>

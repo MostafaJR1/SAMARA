@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FiCheck, FiShoppingBag } from "react-icons/fi";
 import { addPackToCart } from "@/lib/cart";
-import type { Pack } from "@/data/Packs";
+import type { Pack } from "@/types/catalog";
 
 export function HomePackButton({ pack }: { pack: Pack }) {
   const [added, setAdded] = useState(false);

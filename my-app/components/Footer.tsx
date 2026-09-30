@@ -1,12 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
-  FiClock,
   FiMail,
   FiMapPin,
   FiMessageCircle,
   FiPhone,
-  FiShield,
-  FiTruck,
 } from "react-icons/fi";
 
 const quickLinks = [
@@ -20,10 +18,10 @@ const quickLinks = [
 
 const customerServiceLinks = [
   { label: "الأسئلة الشائعة", href: "/#faq" },
-  { label: "سياسة التوصيل والدفع", href: "/shipping-policy" },
-  { label: "سياسة الاستبدال والضمان", href: "/returns-policy" },
-  { label: "تأكيد الطلب والمعاينة", href: "/inspection" },
-  { label: "شروط الخدمة والخصوصية", href: "/privacy" },
+  { label: "العروض والتخفيضات", href: "/offers" },
+  { label: "الأكثر مبيعًا", href: "/best-sellers" },
+  { label: "الباقات المنسقة", href: "/packs" },
+  { label: "جميع المنتجات", href: "/products" },
 ];
 
 export function Footer() {
@@ -77,10 +75,10 @@ export function Footer() {
           <div className="col-span-2 sm:col-span-1">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-2xl font-black font-ruwudu tracking-wider text-white"
+              aria-label="سمارة - الرئيسية"
+              className="inline-flex items-center"
             >
-              <span>سمارة</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#8B102F]" />
+              <Image src="/SAMARA-LOGO.png" alt="سمارة" width={56} height={56} className="h-14 w-14 object-contain" />
             </Link>
 
             <p className="mt-3 text-xs leading-6 text-neutral-400">
@@ -122,7 +120,7 @@ export function Footer() {
           {/* Column 3: Customer Care */}
           <div>
             <h3 className="text-xs font-black uppercase tracking-wider text-white">
-              خدمة الزبناء
+              اكتشف المتجر
             </h3>
             <ul className="mt-4 space-y-2.5 text-xs">
               {customerServiceLinks.map((link) => (

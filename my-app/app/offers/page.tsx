@@ -1,11 +1,25 @@
+import type { Metadata } from "next";
 import { getProductsFromDatabase } from "@/lib/products-server";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 import { OffersClientView } from "@/components/OffersClientView";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "العروض والتخفيضات | متجر سمارة",
-  description: "استفد من أقوى العروض والتخفيضات الحصرية على منتجات وباقات سمارة مع شحن مجاني والدفع عند الاستلام.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const products = await getProductsFromDatabase();
+  const packs = await getPacksFromDatabase(products);
+  const discountedProducts = products.filter(
+    (product) => product.oldPrice > product.price || product.discount > 0,
+  );
+  const discountedPacks = packs.filter((pack) => pack.originalPrice > pack.price);
+  const productCount = discountedProducts.length;
+  const packCount = discountedPacks.length;
+
+  return createPageMetadata({
+    title: "العروض والتخفيضات",
+    description: `تعرّف على ${productCount} من عروض المنتجات و${packCount} من الباقات المتاحة في متجر سمارة، مع الشحن المجاني والدفع عند الاستلام.`,
+    path: "/offers",
+  });
+}
 
 export default async function OffersPage() {
   const products = await getProductsFromDatabase();
@@ -18,14 +32,13 @@ export default async function OffersPage() {
       (product.discount && product.discount > 0)
   );
 
-  // Fallback to all products if none have oldPrice set
-  const finalProducts = discountedProducts.length > 0 ? discountedProducts : products.slice(0, 4);
+  const finalProducts = discountedProducts;
 
   // Filter packs with real savings
   const discountedPacks = packs.filter(
     (pack) => pack.originalPrice && pack.originalPrice > pack.price
   );
-  const finalPacks = discountedPacks.length > 0 ? discountedPacks : packs;
+  const finalPacks = discountedPacks;
 
   return (
     <div className="min-h-screen bg-white text-neutral-950 selection:bg-neutral-950 selection:text-white">

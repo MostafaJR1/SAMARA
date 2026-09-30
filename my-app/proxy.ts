@@ -6,8 +6,6 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute = pathname === "/auth";
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
-  if (!isAuthRoute && !isAdminRoute) return NextResponse.next({ request });
-
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -32,13 +30,17 @@ export async function proxy(request: NextRequest) {
   const isAuthenticated = Boolean(claims?.sub);
 
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const redirectResponse = NextResponse.redirect(new URL("/", request.url));
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
 
   if (isAdminRoute && !isAuthenticated) {
     const loginUrl = new URL("/auth", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
 
   return response;

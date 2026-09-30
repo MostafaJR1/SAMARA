@@ -4,12 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { FiArrowRight, FiCheck, FiHeart, FiShoppingBag, FiStar } from "react-icons/fi";
-import type { ProductsData } from "@/data/Products";
+import type { Product } from "@/types/catalog";
 import { getServerWishlistSnapshot, getWishlistIds, getWishlistSnapshot, subscribeToWishlist } from "@/lib/wishlist";
 import { addProductToCart } from "@/lib/cart";
 import { WishlistButton } from "@/components/WishlistButton";
 
-type Product = (typeof ProductsData)[number];
 
 export function WishlistPage({ products }: { products: Product[] }) {
   const snapshot = useSyncExternalStore(subscribeToWishlist, getWishlistSnapshot, getServerWishlistSnapshot);

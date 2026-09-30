@@ -132,7 +132,10 @@ function getCatalogErrorMessage(error: unknown, fallback: string) {
       return "لا يمكن حذف الباقة بسبب ارتباطها بطلب سابق. أعد تشغيل تحديث قاعدة البيانات ثم حاول مرة أخرى.";
     }
     if (typeof databaseError.message === "string" && databaseError.message.includes("permission denied for table packs")) {
-      return "لا توجد صلاحية لتحديث حالة الباقة في قاعدة البيانات. شغّل تحديث صلاحيات الباقات في Supabase ثم أعد المحاولة.";
+      return "لا توجد صلاحية لتعديل الباقات أو حذفها في قاعدة البيانات. شغّل تحديث صلاحيات الباقات في Supabase ثم أعد المحاولة.";
+    }
+    if (typeof databaseError.message === "string" && databaseError.message.includes("permission denied for table products")) {
+      return "لا توجد صلاحية لحذف المنتجات في قاعدة البيانات. شغّل تحديث صلاحيات الكتالوج في Supabase ثم أعد المحاولة.";
     }
     if (typeof databaseError.message === "string" && databaseError.message.trim()) {
       return databaseError.message;

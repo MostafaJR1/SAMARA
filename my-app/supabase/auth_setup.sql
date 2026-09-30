@@ -68,31 +68,6 @@ alter table public.products
 alter table public.packs
   add column if not exists colors jsonb not null default '[]'::jsonb;
 
-update public.products
-set old_price = 1199,
-    discount = 25,
-    rating = 4.8,
-    badge = 'الأكثر مبيعًا',
-    description = 'كنبة مريحة وقابلة للنفخ، مناسبة للمنزل والاسترخاء.',
-    colors = jsonb_build_array(
-      jsonb_build_object('id', 'beige', 'name', 'بيج', 'hex', '#d8c8b4', 'image', image),
-      jsonb_build_object('id', 'orange', 'name', 'برتقالي', 'hex', '#e9783f', 'image', image),
-      jsonb_build_object('id', 'light-blue', 'name', 'أزرق فاتح', 'hex', '#a8d5e8', 'image', image),
-      jsonb_build_object('id', 'purple', 'name', 'بنفسجي', 'hex', '#bba9d3', 'image', image)
-    ),
-    features = jsonb_build_array('قابلة للنفخ', 'مريحة', 'سهلة النقل', 'تصميم عصري')
-where id = 'product-001';
-
-update public.products
-set old_price = 649,
-    discount = 23,
-    rating = 4.7,
-    badge = 'جديد',
-    description = 'كرسي جلوس مريح بتصميم عصري، مزود بمقعد مبطن باللون الأحمر وقاعدة معدنية متينة بتصميم منحني.',
-    colors = jsonb_build_array(jsonb_build_object('id', 'red', 'name', 'أحمر', 'hex', '#c93632', 'image', image)),
-    features = jsonb_build_array('مقعد مبطن ومريح', 'قاعدة معدنية متينة', 'تصميم عصري وأنيق', 'مناسب لغرفة المعيشة أو المكتب', 'سهل التنظيف')
-where id = 'product-002';
-
 -- Admin catalog permissions.
 grant select, insert, update, delete on table public.products, public.packs, public.pack_items to authenticated;
 

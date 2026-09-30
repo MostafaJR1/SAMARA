@@ -6,9 +6,7 @@ import { useState } from "react";
 import { FiCheck, FiShoppingBag, FiStar } from "react-icons/fi";
 import { addProductToCart } from "@/lib/cart";
 import { WishlistButton } from "@/components/WishlistButton";
-import type { ProductsData } from "@/data/Products";
-
-type Product = (typeof ProductsData)[number];
+import type { Product } from "@/types/catalog";
 
 export function HomeProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);

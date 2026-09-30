@@ -1,8 +1,6 @@
-import { ProductsData } from "@/data/Products";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { getProductsFromDatabase } from "@/lib/products-server";
-
-type Product = (typeof ProductsData)[number];
+import type { Product } from "@/types/catalog";
 
 type OrderItemRow = {
   product_id: string;

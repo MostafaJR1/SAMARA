@@ -5,29 +5,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FiChevronDown, FiChevronLeft, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { WishlistButton } from "@/components/WishlistButton";
-import type { ProductsData } from "@/data/Products";
-
-type Product = (typeof ProductsData)[number];
+import { getProductSearchScore, normalizeSearchText } from "@/lib/product-search";
+import type { Product } from "@/types/catalog";
 type SortOption = "relevance" | "rating" | "price-low" | "price-high" | "discount";
 type PriceOption = "all" | "under-500" | "500-1000" | "over-1000";
 type FilterOption = { value: string; label: string };
-
-function normalize(value: string) {
-  return value.toLocaleLowerCase("ar").normalize("NFD").replace(/[\u064B-\u065F\u0670]/g, "").replace(/[إأآ]/g, "ا").replace(/ة/g, "ه").trim();
-}
-
-function searchableText(product: Product) {
-  return normalize([product.name, product.category, product.description, product.badge, ...product.features, ...product.colors.map((color) => color.name)].join(" "));
-}
-
-function getSearchScore(product: Product, query: string) {
-  const normalizedQuery = normalize(query);
-  if (!normalizedQuery) return product.rating * 10;
-  const name = normalize(product.name);
-  const words = normalizedQuery.split(/\s+/).filter(Boolean);
-  const text = searchableText(product);
-  return (name === normalizedQuery ? 1000 : 0) + (name.includes(normalizedQuery) ? 400 : 0) + words.filter((word) => text.includes(word)).length * 100 + product.rating * 10 + product.discount;
-}
 
 function matchesPrice(product: Product, price: PriceOption) {
   if (price === "all") return true;
@@ -58,18 +40,18 @@ export function ProductsCatalog({ products, initialCategory }: { products: Produ
   }, [query]);
 
   const activeQuery = appliedQuery.trim();
-  const searching = Boolean(query.trim()) && normalize(query) !== normalize(previewQuery);
-  const suggestions = [...products].sort((a, b) => getSearchScore(b, previewQuery) - getSearchScore(a, previewQuery)).slice(0, 5);
+  const searching = Boolean(query.trim()) && normalizeSearchText(query) !== normalizeSearchText(previewQuery);
+  const suggestions = [...products].sort((a, b) => getProductSearchScore(b, previewQuery) - getProductSearchScore(a, previewQuery)).slice(0, 5);
   const filteredProducts = products
     .filter((product) => category === "all" || product.category === category)
     .filter((product) => matchesPrice(product, price))
-    .filter((product) => !activeQuery || getSearchScore(product, activeQuery) >= 100);
+    .filter((product) => !activeQuery || getProductSearchScore(product, activeQuery) >= 0);
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sort === "rating") return b.rating - a.rating;
     if (sort === "price-low") return a.price - b.price;
     if (sort === "price-high") return b.price - a.price;
     if (sort === "discount") return b.discount - a.discount;
-    return getSearchScore(b, activeQuery) - getSearchScore(a, activeQuery);
+    return getProductSearchScore(b, activeQuery) - getProductSearchScore(a, activeQuery);
   });
   const pageCount = Math.max(1, Math.ceil(sortedProducts.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -114,15 +96,40 @@ export function ProductsCatalog({ products, initialCategory }: { products: Produ
   return (
     <main dir="rtl" className="min-h-screen bg-white text-neutral-950">
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+        {category !== "all" && (
+          <nav aria-label="مسار التنقل" className="mb-3 flex items-center gap-2 text-[10px] font-semibold text-neutral-500 sm:text-xs">
+            <Link href="/" className="hover:text-neutral-950">الرئيسية</Link>
+            <FiChevronLeft className="h-3 w-3" />
+            <Link href="/products" className="hover:text-neutral-950">المنتجات</Link>
+            <FiChevronLeft className="h-3 w-3" />
+            <span className="font-bold text-neutral-900">{category}</span>
+          </nav>
+        )}
         <header className="mb-4 flex items-end justify-between gap-3 border-b border-neutral-200 pb-4 sm:mb-5 sm:pb-5">
           <div>
             <p className="text-[10px] font-bold text-[#8B102F]">تشكيلة سمارة</p>
-            <h1 className="mt-0.5 text-lg font-black text-neutral-950 sm:text-xl">اكتشف منتجاتنا</h1>
+            <h1 className="mt-0.5 text-lg font-black text-neutral-950 sm:text-xl">{category === "all" ? "اكتشف منتجاتنا" : `منتجات ${category}`}</h1>
           </div>
           <span className="shrink-0 rounded-md bg-[#f7e9ed] px-2.5 py-1.5 text-[10px] font-bold text-[#8B102F] sm:text-xs">
             {filteredProducts.length} منتج
           </span>
         </header>
+
+        <nav aria-label="فئات المنتجات" className="mb-4 flex flex-wrap gap-x-4 gap-y-2 border-b border-neutral-100 pb-3 text-[10px] font-semibold sm:text-xs">
+          <Link href="/products" aria-current={category === "all" ? "page" : undefined} className={category === "all" ? "text-[#8B102F]" : "text-neutral-600 hover:text-neutral-950"}>
+            جميع الفئات
+          </Link>
+          {categories.map((item) => (
+            <Link
+              key={item}
+              href={`/products?category=${encodeURIComponent(item)}`}
+              aria-current={category === item ? "page" : undefined}
+              className={category === item ? "text-[#8B102F]" : "text-neutral-600 hover:text-neutral-950"}
+            >
+              {item}
+            </Link>
+          ))}
+        </nav>
 
         <div className="grid w-full grid-cols-2 gap-2 overflow-visible sm:flex sm:flex-wrap sm:items-center">
           <div ref={searchRef} className="relative col-span-2 min-w-0 sm:basis-full sm:flex-1 lg:basis-auto">

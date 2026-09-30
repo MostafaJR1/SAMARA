@@ -34,3 +34,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## SEO deployment configuration
+
+Set `NEXT_PUBLIC_SITE_URL` to the canonical production origin, including the scheme and without a trailing path (for example, `https://store.example`). This value is used for canonical URLs, social metadata, and the sitemap. Vercel's production URL variables are fallback sources, but setting the store's verified primary domain is recommended. Preview deployments emit `noindex`; without a valid origin, production metadata avoids publishing guessed canonicals and the sitemap is empty.
