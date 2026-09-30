@@ -28,6 +28,7 @@ const productSchema = z.object({
   features: z.array(z.string().trim().min(1).max(160)),
   stock: z.number().int().nonnegative(),
   shipping: z.string().trim().max(100),
+  isActive: z.boolean().default(true),
 });
 
 const packSchema = z.object({
@@ -135,7 +136,7 @@ function getCatalogErrorMessage(error: unknown, fallback: string) {
       return "لا توجد صلاحية لتعديل الباقات أو حذفها في قاعدة البيانات. شغّل تحديث صلاحيات الباقات في Supabase ثم أعد المحاولة.";
     }
     if (typeof databaseError.message === "string" && databaseError.message.includes("permission denied for table products")) {
-      return "لا توجد صلاحية لحذف المنتجات في قاعدة البيانات. شغّل تحديث صلاحيات الكتالوج في Supabase ثم أعد المحاولة.";
+      return "لا توجد صلاحية لإضافة أو تعديل أو حذف المنتجات في قاعدة البيانات. شغّل تحديث صلاحيات الكتالوج في Supabase ثم أعد المحاولة.";
     }
     if (typeof databaseError.message === "string" && databaseError.message.trim()) {
       return databaseError.message;
@@ -178,6 +179,7 @@ export async function POST(request: Request) {
         features: product.features,
         stock: product.stock,
         shipping: product.shipping,
+        is_active: product.isActive,
       }).select().single();
       if (error) throw error;
       return NextResponse.json({ data }, { status: 201 });
@@ -256,7 +258,7 @@ export async function PATCH(request: Request) {
           .neq("id", body.id);
         if (clearError) throw clearError;
       }
-      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_featured: product.isFeatured, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
+      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_active: product.isActive, is_featured: product.isFeatured, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
       if (error) throw error;
       return NextResponse.json({ ok: true });
     }
