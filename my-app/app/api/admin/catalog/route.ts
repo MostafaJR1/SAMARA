@@ -11,11 +11,17 @@ const colorSchema = z.object({
   galleryImages: z.array(z.string().url()).optional(),
 });
 
+const mediaSchema = z.object({
+  type: z.enum(["image", "video"]),
+  url: z.string().url(),
+});
+
 const productSchema = z.object({
   id: z.string().min(1).max(120).optional(),
   name: z.string().trim().min(1).max(200),
   category: z.string().trim().min(1).max(100),
   image: z.string().url(),
+  media: z.array(mediaSchema).max(40).default([]),
   price: z.number().int().nonnegative(),
   oldPrice: z.number().int().nonnegative().nullable().optional(),
   discount: z.number().int().nonnegative(),
@@ -123,6 +129,9 @@ function getCatalogErrorMessage(error: unknown, fallback: string) {
       .filter((value): value is string => typeof value === "string")
       .join(" ");
 
+    if (databaseError.code === "42703" && errorText.includes("products.media")) {
+      return "وسائط الفيديو غير مفعّلة في قاعدة البيانات. شغّل ملف catalog_permissions_migration.sql في Supabase، ثم أعد حفظ المنتج.";
+    }
     if (databaseError.code === "23503" && errorText.includes("pack_items_product_id_fkey")) {
       return "لا يمكن حذف هذا المنتج لأنه مستخدم في باقة أو أكثر. أزل المنتج من الباقات المرتبطة أولاً، ثم أعد المحاولة.";
     }
@@ -167,6 +176,7 @@ export async function POST(request: Request) {
         name: product.name,
         category: product.category,
         image: product.image,
+        media: product.media,
         price: product.price,
         old_price: product.oldPrice ?? null,
         discount: product.discount,
@@ -258,7 +268,7 @@ export async function PATCH(request: Request) {
           .neq("id", body.id);
         if (clearError) throw clearError;
       }
-      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_active: product.isActive, is_featured: product.isFeatured, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
+      const { error } = await auth.supabase.from("products").update({ name: product.name, category: product.category, image: product.image, media: product.media, price: product.price, old_price: product.oldPrice ?? null, discount: product.discount, rating: product.rating, is_active: product.isActive, is_featured: product.isFeatured, is_coupon_eligible: product.isCouponEligible, badge: product.badge ?? null, description: product.description, colors: product.colors, features: product.features, stock: product.stock, shipping: product.shipping, updated_at: new Date().toISOString() }).eq("id", body.id);
       if (error) throw error;
       return NextResponse.json({ ok: true });
     }

@@ -1,12 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FiChevronDown, FiChevronLeft, FiSearch, FiStar, FiX } from "react-icons/fi";
 import { WishlistButton } from "@/components/WishlistButton";
 import { getProductSearchScore, normalizeSearchText } from "@/lib/product-search";
 import type { Product } from "@/types/catalog";
+import { getProductCardMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
 type SortOption = "relevance" | "rating" | "price-low" | "price-high" | "discount";
 type PriceOption = "all" | "under-500" | "500-1000" | "over-1000";
 type FilterOption = { value: string; label: string };
@@ -198,20 +199,15 @@ function ProductCard({ product }: { product: Product }) {
     : 0;
 
   return (
-    <Link href={`/products/${product.id}`} className="group block overflow-hidden rounded-md border border-neutral-200 bg-white transition hover:border-[#8B102F]/50">
+    <article className="group block overflow-hidden rounded-md border border-neutral-200 bg-white transition hover:border-[#8B102F]/50">
       <div className="relative aspect-[4/5] overflow-hidden bg-[#faf8f9]">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.02] sm:p-2"
-        />
-        {product.badge && <span className="absolute right-2 top-2 rounded-sm bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge}</span>}
-        <div className="absolute left-2 top-2"><WishlistButton productId={product.id} /></div>
+        <ProductMediaCarousel slides={getProductCardMedia(product)} name={product.name} objectFit="contain" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="p-1.5 sm:p-2" />
+        <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="absolute inset-0 z-10" />
+        {product.badge && <span className="absolute right-2 top-2 z-30 rounded-sm bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge}</span>}
+        <div className="absolute left-2 top-2 z-30"><WishlistButton productId={product.id} /></div>
       </div>
       <div className="space-y-1.5 p-2.5 text-right sm:p-3">
-        <h2 className="truncate text-xs font-bold text-neutral-900 group-hover:text-[#8B102F]">{product.name}</h2>
+        <Link href={`/products/${product.id}`} className="block truncate text-xs font-bold text-neutral-900 group-hover:text-[#8B102F]">{product.name}</Link>
         <p className="line-clamp-1 text-[10px] text-neutral-500">{product.description}</p>
         <div className="flex items-baseline justify-between gap-1 pt-1">
           <span className="text-xs font-black text-[#8B102F] sm:text-sm">{product.price.toLocaleString("ar-MA")} د.م</span>
@@ -226,6 +222,6 @@ function ProductCard({ product }: { product: Product }) {
           </div>
         )}
       </div>
-    </Link>
+    </article>
   );
 }

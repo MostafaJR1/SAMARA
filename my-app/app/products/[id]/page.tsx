@@ -39,7 +39,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const path = `/products/${id}`;
   const productUrl = absoluteUrl(path);
-  const productImages = Array.from(new Set([product.image, ...product.colors.map((color) => color.image)]))
+  const productImages = Array.from(new Set([
+    product.image,
+    ...product.colors.map((color) => color.image),
+    ...(product.media ?? []).filter((slide) => slide.type === "image").map((slide) => slide.url),
+  ]))
     .map(absoluteImageUrl)
     .filter((image): image is string => Boolean(image));
   const productStructuredData = {

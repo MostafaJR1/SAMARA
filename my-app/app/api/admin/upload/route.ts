@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getAuthContext } from "@/lib/auth";
 
-const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]);
 
 export async function POST(request: Request) {
   const context = await getAuthContext();
@@ -11,8 +11,10 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
-  if (!(file instanceof File) || !allowedTypes.has(file.type) || file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: "اختر صورة JPG أو PNG أو WEBP أقل من 5MB" }, { status: 400 });
+  const isImage = file instanceof File && file.type.startsWith("image/");
+  const maxSize = isImage ? 5 * 1024 * 1024 : 50 * 1024 * 1024;
+  if (!(file instanceof File) || !allowedTypes.has(file.type) || file.size > maxSize) {
+    return NextResponse.json({ error: "اختر صورة JPG أو PNG أو WEBP أقل من 5MB، أو فيديو MP4 أو WEBM أقل من 50MB" }, { status: 400 });
   }
 
   const extension = file.type.split("/")[1];

@@ -6,6 +6,7 @@ type ProductRow = {
   name: string;
   category: string;
   image: string;
+  media?: Product["media"];
   price: number;
   old_price: number | null;
   discount: number;
@@ -26,7 +27,7 @@ export const getProductsFromDatabase = cache(async function getProductsFromDatab
     const supabase = await getSupabaseServerClient();
     const { data, error } = await supabase
       .from("products")
-      .select("id, name, category, image, price, old_price, discount, rating, badge, description, colors, features, stock, shipping, is_active, is_featured, is_coupon_eligible")
+      .select("id, name, category, image, media, price, old_price, discount, rating, badge, description, colors, features, stock, shipping, is_active, is_featured, is_coupon_eligible")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
 
@@ -55,6 +56,7 @@ export const getProductsFromDatabase = cache(async function getProductsFromDatab
       name: row.name,
       category: row.category,
       image: row.image,
+      media: row.media ?? [],
       price: row.price,
       oldPrice: row.old_price ?? row.price,
       discount: row.discount,

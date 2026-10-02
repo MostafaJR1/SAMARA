@@ -18,6 +18,9 @@ import { getProductsFromDatabase } from "@/lib/products-server";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 import { FaCheckCircle } from "react-icons/fa";
 import { createPageMetadata } from "@/lib/seo";
+import { getProductMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
+import { getBestSellingProducts } from "@/lib/best-sellers";
 
 export async function generateMetadata(): Promise<Metadata> {
   const products = await getProductsFromDatabase();
@@ -51,43 +54,41 @@ export default async function Home() {
   const packPrice = featuredPack?.price ?? packOriginalPrice;
   const packSavings = Math.max(0, packOriginalPrice - packPrice);
 
-  const secondaryProducts = products
-    .filter((product) => product.id !== featuredProduct?.id)
-    .sort((first, second) => {
-      const firstFeatured = first.badge?.includes("الأكثر") ? 1 : 0;
-      const secondFeatured = second.badge?.includes("الأكثر") ? 1 : 0;
-      return secondFeatured - firstFeatured || second.rating - first.rating;
-    });
+  const bestSellingProducts = await getBestSellingProducts();
+  const newProducts = products.slice(0, 4);
 
   if (!featuredProduct) return null;
 
   return (
     <div className="min-h-screen bg-white text-neutral-950 selection:bg-neutral-950 selection:text-white">
-      <main dir="rtl" className="overflow-hidden pb-16 sm:pb-0">
+      <main dir="rtl" className="overflow-hidden pb-24">
         
         {/* ========================================================
             SECTION 1: HERO SHOWCASE (Framed Container with Depth)
         ======================================================== */}
         <ScrollReveal>
         <section className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-6 lg:px-8">
-              <div className="relative grid aspect-square overflow-hidden rounded-md border border-neutral-200 bg-neutral-950 text-white lg:aspect-auto lg:grid-cols-[minmax(0,1fr)_380px]" dir="ltr">
-                <div className="absolute inset-0 overflow-hidden bg-neutral-100 lg:relative lg:order-2 lg:aspect-square lg:w-full">
-              <Image
-                src={featuredProduct.image}
-                alt={featuredProduct.name}
-                fill
-                loading="eager"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
+              <div className="relative grid aspect-square overflow-hidden rounded-md border border-[#8b102f]/20 bg-[#8b102f]/20 text-black lg:aspect-auto lg:grid-cols-[minmax(0,1fr)_380px]" dir="ltr">
+                <div className="absolute inset-0 overflow-hidden bg-white lg:relative lg:order-2 lg:aspect-square lg:w-full">
+              <ProductMediaCarousel
+                slides={getProductMedia(featuredProduct)}
+                name={featuredProduct.name}
+                autoPlay
+                interval={4500}
+                objectFit="contain"
+                mediaClassName="scale-[0.92] sm:scale-[0.88] lg:scale-[0.82]"
+                sizes="(max-width: 1024px) 100vw, 380px"
+                indicatorPlacement="raised-center"
+                className="absolute inset-0"
               />
                 </div>
 
-                <div className="relative z-10 order-2 flex flex-col justify-end items-center bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
-                  <h1 className="text-3xl font-black leading-snug text-white text-center mb-2 sm:text-3xl">
+                <div className="relative z-10 order-2 flex flex-col justify-end items-center bg-gradient-to-t from-[#8b102f]/20 via-[#8b102f]/10 to-transparent p-4 text-right sm:p-6 lg:order-1 lg:justify-center lg:bg-none lg:p-10" dir="rtl">
+                  <h1 className="text-3xl font-black leading-snug text-neutral-950 text-center mb-2 sm:text-3xl">
                     {featuredProduct.name || featuredProduct.features[0]}
                   </h1>
 
-                  <p className="mt-3 line-clamp-2 text-center text-[10px] leading-5 text-neutral-200 sm:mt-4 sm:text-sm">
+                  <p className="mt-3 line-clamp-2 text-center text-[10px] leading-5 text-neutral-700 sm:mt-4 sm:text-sm">
                     {featuredProduct.description || featuredProduct.features[1] || "اكتشف هذا المنتج الرائع الآن!"}
                   </p>
 
@@ -125,7 +126,7 @@ export default async function Home() {
                     اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" /> | {featuredProduct.price.toLocaleString("ar-MA")} د.م
                   </Link>
 
-                  <p className="mt-2 text-[10px] font-semibold text-neutral-200 sm:text-xs">
+                  <p className="mt-2 translate-y-2 text-[10px] font-semibold text-neutral-700 sm:text-xs">
                     الدفع عند الاستلام <span className="mx-1.5">·</span> توصيل مجاني في المغرب
                   </p>
             </div>
@@ -319,26 +320,49 @@ export default async function Home() {
   </ScrollReveal>
 )}
 
-        {secondaryProducts.length > 0 && (
+        {bestSellingProducts.length > 0 && (
           <ScrollReveal>
           <section className="bg-[#faf9f8] py-7 sm:py-9">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="mb-3 flex items-end justify-between gap-3 text-right">
                 <div>
-                  <span className="text-[10px] font-bold text-neutral-500">تشكيلة سمارة</span>
-                  <h2 className="mt-0.5 text-lg font-black text-neutral-900 sm:text-xl">اكتشف منتجات أخرى</h2>
+                  <span className="text-[10px] font-bold text-neutral-500">الأكثر طلباً</span>
+                  <h2 className="mt-0.5 text-lg font-black text-neutral-900 sm:text-xl">الأكثر مبيعاً</h2>
                 </div>
-                <Link href="/products" className="shrink-0 text-[10px] font-bold text-[#8B102F] hover:underline">
-                  كل المنتجات <FiChevronLeft className="inline h-3 w-3" />
+                <Link href="/best-sellers" className="shrink-0 text-[10px] font-bold text-[#8B102F] hover:underline">
+                  عرض الكل <FiChevronLeft className="inline h-3 w-3" />
                 </Link>
               </div>
               <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-                {secondaryProducts.slice(0, 4).map((product) => (
-                  <HomeProductCard key={`other-${product.id}`} product={product} />
+                {bestSellingProducts.slice(0, 4).map((product) => (
+                  <HomeProductCard key={`best-seller-${product.id}`} product={product} />
                 ))}
               </div>
             </div>
           </section>
+          </ScrollReveal>
+        )}
+
+        {newProducts.length > 0 && (
+          <ScrollReveal>
+            <section className="border-y border-neutral-200 bg-white py-7 sm:py-9">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mb-3 flex items-end justify-between gap-3 text-right">
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-500">وصلت حديثاً</span>
+                    <h2 className="mt-0.5 text-lg font-black text-neutral-900 sm:text-xl">منتجات جديدة</h2>
+                  </div>
+                  <Link href="/products" className="shrink-0 text-[10px] font-bold text-[#8B102F] hover:underline">
+                    كل المنتجات <FiChevronLeft className="inline h-3 w-3" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                  {newProducts.map((product) => (
+                    <HomeProductCard key={`new-product-${product.id}`} product={product} />
+                  ))}
+                </div>
+              </div>
+            </section>
           </ScrollReveal>
         )}
 
@@ -421,13 +445,13 @@ export default async function Home() {
         </ScrollReveal>
 
       </main>
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden">
-        <div className="mx-auto flex max-w-xl items-center gap-3" dir="rtl">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur sm:p-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-2 sm:gap-5 sm:px-6 lg:px-8" dir="rtl">
           <div className="min-w-0 flex-1">
-            <span className="block text-[9px] font-semibold text-neutral-500">{featuredProduct.name}</span>
-            <span className="text-sm font-black text-[#8B102F]">{featuredProduct.price.toLocaleString("ar-MA")} د.م</span>
+            <span className="block truncate text-[9px] font-semibold text-neutral-500 sm:text-xs">{featuredProduct.name}</span>
+            <span className="text-sm font-black text-[#8B102F] sm:text-base">{featuredProduct.price.toLocaleString("ar-MA")} د.م</span>
           </div>
-          <Link href={`/products/${featuredProduct.id}`} className="cart-action-button inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md px-5 text-white">
+          <Link href={`/products/${featuredProduct.id}`} className="cart-action-button inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md px-5 text-white sm:min-w-48 sm:px-8">
             اطلب الآن <FiShoppingBag className="h-3.5 w-3.5" />
           </Link>
         </div>

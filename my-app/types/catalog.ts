@@ -6,11 +6,17 @@ export type ProductColor = {
   galleryImages?: string[];
 };
 
+export type ProductMedia = {
+  type: "image" | "video";
+  url: string;
+};
+
 export type Product = {
   id: string;
   name: string;
   category: string;
   image: string;
+  media?: ProductMedia[];
   price: number;
   oldPrice: number;
   discount: number;

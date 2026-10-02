@@ -19,10 +19,14 @@ import {
   FiStar,
   FiTag,
   FiTrash2,
+  FiVideo,
+  FiUpload,
   FiX,
 } from "react-icons/fi";
 import { toast, Toaster } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getProductMedia } from "@/lib/product-media";
+import type { ProductMedia } from "@/types/catalog";
 
 export type AdminPack = {
   id: string;
@@ -74,6 +78,7 @@ export type AdminProduct = {
   is_featured?: boolean;
   is_coupon_eligible?: boolean; // <-- NEW
   colors: AdminProductColor[];
+  media?: ProductMedia[];
   features: string[];
 };
 
@@ -122,6 +127,7 @@ const emptyProduct = (): AdminProduct => ({
   is_active: true,
   is_featured: false,
   colors: [],
+  media: [],
   features: [],
 });
 
@@ -259,6 +265,10 @@ export function AdminDashboard({
       }
       if (productEditor.price <= 0) {
         setEditorError("سعر المنتج يجب أن يكون أكبر من 0 د.م");
+        return;
+      }
+      if (!productEditor.image && !productEditor.media?.some((item) => item.type === "image")) {
+        setEditorError("أضف صورة واحدة على الأقل لتكون صورة الغلاف");
         return;
       }
       if (productEditor.image && !isValidUrl(productEditor.image)) {
@@ -1612,8 +1622,39 @@ function ProductEditorModal({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const currentValue = useRef(value);
+  useEffect(() => {
+    currentValue.current = value;
+  }, [value]);
+
   const set = (key: keyof AdminProduct, next: string | number | boolean | null) =>
     onChange({ ...value, [key]: next });
+
+  async function uploadProductMedia(files: FileList | null) {
+    if (!files?.length) return;
+    setUploadingMedia(true);
+    try {
+      const uploadedMedia: ProductMedia[] = [];
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.set("file", file);
+        const response = await fetch("/api/admin/upload", { method: "POST", body: formData });
+        const result = (await response.json()) as { url?: string; error?: string };
+        if (!response.ok || !result.url) throw new Error(result.error ?? "تعذر رفع الوسائط");
+        uploadedMedia.push({ type: file.type.startsWith("video/") ? "video" : "image", url: result.url });
+      }
+      const latestValue = currentValue.current;
+      const currentMedia = getProductMedia(latestValue);
+      const coverImage = latestValue.image || uploadedMedia.find((item) => item.type === "image")?.url || "";
+      onChange({ ...latestValue, image: coverImage, media: [...currentMedia, ...uploadedMedia] });
+      toast.success("تم رفع الوسائط بنجاح");
+    } catch (uploadError) {
+      toast.error(uploadError instanceof Error ? uploadError.message : "تعذر رفع الوسائط");
+    } finally {
+      setUploadingMedia(false);
+    }
+  }
 
   // Update color/image list and keep the first item as value.image
   const handleMediaColorsChange = (
@@ -1631,7 +1672,7 @@ function ProductEditorModal({
     <PolarisModalShell
       title={value.id ? `تعديل المنتج: ${value.name}` : "إضافة منتج جديد للمتجر"}
       error={error}
-      busy={busy}
+      busy={busy || uploadingMedia}
       onSave={onSave}
       onClose={onClose}
     >
@@ -1680,6 +1721,13 @@ function ProductEditorModal({
           primaryImage={value.image}
           onChange={handleMediaColorsChange}
           onSetPrimaryDirect={(imgUrl) => set("image", imgUrl)}
+        />
+
+        <ProductSlidesManager
+          slides={getProductMedia(value)}
+          uploading={uploadingMedia}
+          onUpload={uploadProductMedia}
+          onChange={(media) => onChange({ ...value, media })}
         />
 
         <div className="sm:col-span-2">
@@ -2017,6 +2065,65 @@ function ProductImageMediaManager({
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+function ProductSlidesManager({
+  slides,
+  uploading,
+  onUpload,
+  onChange,
+}: {
+  slides: ProductMedia[];
+  uploading: boolean;
+  onUpload: (files: FileList | null) => void;
+  onChange: (slides: ProductMedia[]) => void;
+}) {
+  return (
+    <div className="sm:col-span-2 rounded-md border border-[#e1e3e5] bg-white p-3.5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-[#202223]">شرائح صور وفيديو المنتج</span>
+          <p className="mt-0.5 text-[10px] text-[#6d7175]">الفيديو يعمل تلقائياً بدون أزرار تشغيل أو شريط زمني.</p>
+        </div>
+        <label className={`inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded border border-[#8B102F]/30 px-2.5 text-xs font-bold text-[#8B102F] hover:bg-[#f7e9ed] ${uploading ? "pointer-events-none opacity-50" : ""}`}>
+          {uploading ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#8B102F]/25 border-t-[#8B102F]" /> : <FiUpload className="h-3.5 w-3.5" />}
+          <span>{uploading ? "جارٍ الرفع" : "رفع صور أو فيديو"}</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+            multiple
+            disabled={uploading}
+            onChange={(event) => { onUpload(event.target.files); event.currentTarget.value = ""; }}
+            className="sr-only"
+          />
+        </label>
+      </div>
+      {slides.length > 0 ? (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {slides.map((slide, index) => (
+            <div key={`${slide.url}-${index}`} className="relative aspect-square overflow-hidden rounded border border-[#e1e3e5] bg-[#f6f6f7]">
+              {slide.type === "video" ? (
+                <video src={slide.url} autoPlay muted loop playsInline preload="metadata" className="h-full w-full object-cover" />
+              ) : (
+                <Image src={slide.url} alt={`شريحة ${index + 1}`} fill sizes="120px" className="object-cover" />
+              )}
+              {slide.type === "video" && <FiVideo aria-label="فيديو" className="absolute bottom-1 right-1 h-4 w-4 rounded-sm bg-black/60 p-0.5 text-white" />}
+              <button
+                type="button"
+                onClick={() => onChange(slides.filter((_, slideIndex) => slideIndex !== index))}
+                aria-label={`حذف الشريحة ${index + 1}`}
+                className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-rose-700"
+              >
+                <FiX className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="border border-dashed border-[#c9cccf] px-3 py-5 text-center text-[11px] text-[#6d7175]">ارفع صورة أو فيديو لإضافته إلى معرض المنتج.</p>
       )}
     </div>
   );

@@ -16,6 +16,8 @@ import {
 import type { Pack, Product } from "@/types/catalog";
 import { WishlistButton } from "@/components/WishlistButton";
 import { addProductToCart } from "@/lib/cart";
+import { getProductCardMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
 
 type TabFilter = "all" | "products" | "packs";
 
@@ -223,24 +225,17 @@ export function OffersClientView({
                 >
                   {/* Image Showcase */}
                   <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-[#faf8f9]">
-                    <Link href={`/products/${product.id}`} className="relative block h-full w-full">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.02] sm:p-2"
-                      />
-                    </Link>
+                    <ProductMediaCarousel slides={getProductCardMedia(product)} name={product.name} objectFit="contain" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="p-1.5 sm:p-2" />
+                    <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="absolute inset-0 z-10" />
 
                     {/* Wishlist Button */}
-                    <div className="absolute left-2 top-2 z-10">
+                    <div className="absolute left-2 top-2 z-30">
                       <WishlistButton productId={product.id} />
                     </div>
 
                     {/* Reduction Percentage Badge */}
                     {discountPercentage > 0 && (
-                      <span className="absolute right-2 top-2 z-10 rounded-xs bg-[#8B102F] px-1.5 py-0.5 text-[10px] font-black text-white">
+                      <span className="absolute right-2 top-2 z-30 rounded-xs bg-[#8B102F] px-1.5 py-0.5 text-[10px] font-black text-white">
                         -{discountPercentage}%
                       </span>
                     )}

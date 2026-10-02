@@ -13,11 +13,14 @@ import {
   FiShield,
   FiChevronLeft,
   FiArrowLeft,
+  FiVideo,
 } from "react-icons/fi";
 import type { Pack, Product, ProductColor } from "@/types/catalog";
 import { WishlistButton } from "@/components/WishlistButton";
 import { getPackSavings, getPackStock } from "@/lib/packs";
 import { addPackToCart, addProductToCart } from "@/lib/cart";
+import { getProductMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
 
 function getRecommendedProducts(product: Product, products: Product[]) {
   return products
@@ -65,13 +68,14 @@ export function ProductDetails({
       image: product.image,
     };
   const [selectedColor, setSelectedColor] = useState(fallbackColor);
-  const [selectedImage, setSelectedImage] = useState(fallbackColor.image);
+  const gallerySlides = getProductMedia(product);
+  const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [added, setAdded] = useState(false);
-  const galleryImages = Array.from(new Set([selectedColor.image, ...(selectedColor.galleryImages ?? [])].filter(Boolean)));
 
   function selectColor(color: ProductColor) {
     setSelectedColor(color);
-    setSelectedImage(color.image);
+    const colorSlideIndex = gallerySlides.findIndex((slide) => slide.url === color.image);
+    if (colorSlideIndex >= 0) setSelectedSlideIndex(colorSlideIndex);
   }
 
   const total = product.price * quantity;
@@ -100,7 +104,7 @@ export function ProductDetails({
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-white pb-16 text-neutral-950 selection:bg-[#8B102F] selection:text-white"
+      className="product-detail-density min-h-screen bg-white pb-16 text-neutral-950 selection:bg-[#8B102F] selection:text-white"
     >
       <div className="mx-auto max-w-7xl px-4 pb-28 pt-3 sm:px-6 lg:px-8 lg:pb-12 lg:pt-5">
         
@@ -130,8 +134,8 @@ export function ProductDetails({
           {/* =====================================================
               PRODUCT GALLERY & MEDIA
           ====================================================== */}
-          <section dir="rtl" className="w-full">
-            <div className="relative overflow-hidden rounded-lg border border-neutral-200 bg-[#faf8f9]">
+          <section dir="rtl" className="mx-auto w-full max-w-full sm:max-w-[400px] lg:max-w-[440px]">
+            <div className="relative w-full overflow-hidden rounded-lg border border-neutral-200 bg-[#faf8f9]">
               
               {/* Dynamic Accurate Discount Badge */}
               {calculatedDiscount > 0 && (
@@ -147,15 +151,16 @@ export function ProductDetails({
                 </div>
               )}
 
-              {/* Main Image */}
+              {/* Active image or video slide */}
               <div className="relative aspect-square w-full overflow-hidden bg-[#faf8f9]">
-                <Image
-                  src={selectedImage}
-                  alt={`${product.name} - ${selectedColor.name}`}
-                  fill
-                  loading="eager"
+                <ProductMediaCarousel
+                  slides={gallerySlides}
+                  name={`${product.name} - ${selectedColor.name}`}
+                  index={selectedSlideIndex}
+                  onIndexChange={setSelectedSlideIndex}
+                  objectFit="cover"
+                  mediaClassName="scale-100"
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain p-3 transition-transform duration-300 hover:scale-[1.015] sm:p-5"
                 />
               </div>
             </div>
@@ -172,16 +177,16 @@ export function ProductDetails({
             </div>
 
             {/* Thumbnail Variant Selector */}
-            {galleryImages.length > 1 && (
+            {gallerySlides.length > 1 && (
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {galleryImages.map((image, index) => {
-                  const selected = selectedImage === image;
+                {gallerySlides.map((slide, index) => {
+                  const selected = selectedSlideIndex === index;
                   return (
                     <button
-                      key={image}
+                      key={`${slide.url}-${index}`}
                       type="button"
-                      onClick={() => setSelectedImage(image)}
-                      aria-label={`عرض الصورة ${index + 1} للون ${selectedColor.name}`}
+                      onClick={() => setSelectedSlideIndex(index)}
+                      aria-label={`عرض ${slide.type === "video" ? "الفيديو" : "الصورة"} ${index + 1} للون ${selectedColor.name}`}
                       aria-pressed={selected}
                       className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-[#faf8f9] transition-all ${
                         selected
@@ -189,13 +194,14 @@ export function ProductDetails({
                           : "border-neutral-200 hover:border-[#8B102F]/50"
                       }`}
                     >
-                      <Image
-                        src={image}
-                        alt={`${product.name} - ${selectedColor.name} - ${index + 1}`}
-                        fill
-                        sizes="72px"
-                        className="object-cover"
-                      />
+                      {slide.type === "video" ? (
+                        <>
+                          <video src={slide.url} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                          <FiVideo className="absolute bottom-1 right-1 h-4 w-4 rounded-sm bg-black/60 p-0.5 text-white" />
+                        </>
+                      ) : (
+                        <Image src={slide.url} alt={`${product.name} - ${index + 1}`} fill sizes="72px" className="object-cover" />
+                      )}
                     </button>
                   );
                 })}

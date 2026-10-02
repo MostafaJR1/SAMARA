@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { FiArrowRight, FiCheck, FiHeart, FiShoppingBag, FiStar } from "react-icons/fi";
@@ -8,6 +7,8 @@ import type { Product } from "@/types/catalog";
 import { getServerWishlistSnapshot, getWishlistIds, getWishlistSnapshot, subscribeToWishlist } from "@/lib/wishlist";
 import { addProductToCart } from "@/lib/cart";
 import { WishlistButton } from "@/components/WishlistButton";
+import { getProductCardMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
 
 
 export function WishlistPage({ products }: { products: Product[] }) {
@@ -62,12 +63,11 @@ function WishlistCard({ product }: { product: Product }) {
   return (
     <article className="group overflow-hidden rounded-md border border-neutral-200 bg-white transition hover:border-[#8B102F]/40">
       <div className="relative aspect-[4/5] overflow-hidden bg-[#faf8f9]">
-        <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="relative block h-full w-full">
-          <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.02] sm:p-2" />
-        </Link>
-        {product.badge && <span className="absolute right-2 top-2 rounded-sm bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge}</span>}
-        {hasOldPrice && savingsPercent > 0 && <span className="absolute left-2 top-2 rounded-sm bg-white/95 px-1.5 py-1 text-[9px] font-bold text-[#8B102F]">-{savingsPercent}%</span>}
-        <div className="absolute bottom-2 left-2"><WishlistButton productId={product.id} /></div>
+        <ProductMediaCarousel slides={getProductCardMedia(product)} name={product.name} objectFit="contain" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="p-1.5 sm:p-2" />
+        <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="absolute inset-0 z-10" />
+        {product.badge && <span className="absolute right-2 top-2 z-30 rounded-sm bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge}</span>}
+        {hasOldPrice && savingsPercent > 0 && <span className="absolute left-2 top-2 z-30 rounded-sm bg-white/95 px-1.5 py-1 text-[9px] font-bold text-[#8B102F]">-{savingsPercent}%</span>}
+        <div className="absolute bottom-2 left-2 z-30"><WishlistButton productId={product.id} /></div>
       </div>
       <div className="space-y-2 p-2.5 text-right sm:p-3">
         <div className="flex items-start justify-between gap-2">

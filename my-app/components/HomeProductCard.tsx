@@ -1,12 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { FiCheck, FiShoppingBag, FiStar } from "react-icons/fi";
 import { addProductToCart } from "@/lib/cart";
 import { WishlistButton } from "@/components/WishlistButton";
 import type { Product } from "@/types/catalog";
+import { getProductCardMedia } from "@/lib/product-media";
+import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
 
 export function HomeProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
@@ -23,13 +24,12 @@ export function HomeProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group rounded-md border border-[#8B102F]/20 bg-white p-2.5 transition hover:border-[#8B102F]/50 sm:p-3">
-      <Link href={`/products/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-[#faf8f9]">
-          <Image src={product.image} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-1.5 transition duration-300 group-hover:scale-[1.02] sm:p-2" />
-          <span className="absolute right-2 top-2 rounded-md bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge || "متوفر"}</span>
-          <div className="absolute left-2 top-2"><WishlistButton productId={product.id} /></div>
-        </div>
-      </Link>
+      <div className="relative aspect-[4/5] overflow-hidden bg-[#faf8f9]">
+        <ProductMediaCarousel slides={getProductCardMedia(product)} name={product.name} objectFit="contain" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="p-1.5 sm:p-2" />
+        <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="absolute inset-0 z-10" />
+        <span className="absolute right-2 top-2 z-30 rounded-md bg-[#8B102F] px-2 py-1 text-[9px] font-bold text-white">{product.badge || "متوفر"}</span>
+        <div className="absolute left-2 top-2 z-30"><WishlistButton productId={product.id} /></div>
+      </div>
       <div className="pt-3 text-right">
         <Link href={`/products/${product.id}`} className="block truncate text-xs font-bold text-neutral-950 hover:underline">{product.name}</Link>
         <div className="mt-2 flex items-center justify-between gap-2">

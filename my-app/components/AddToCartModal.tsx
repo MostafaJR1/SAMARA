@@ -171,25 +171,35 @@ export function AddToCartModal({ products: initialProducts, packs: initialPacks 
   }
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          key="add-to-cart-overlay"
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ type: "spring", stiffness: 320, damping: 34 }}
+          key="add-to-cart-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           className="fixed inset-0 z-[60] bg-black/45"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setIsOpen(false);
           }}
-        >
-          <aside
+        />
+      )}
+    </AnimatePresence>
+    <AnimatePresence>
+      {isOpen && (
+          <motion.aside
+              key="add-to-cart-panel"
               dir="rtl"
               role="dialog"
               aria-modal="true"
               aria-labelledby="cart-preview-title"
-              className="absolute inset-y-0 right-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+              className="fixed inset-y-0 right-0 z-[61] flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
             >
               <div className="flex items-center gap-3 border-b border-neutral-200 px-4 py-3">
                 <button
@@ -283,9 +293,9 @@ export function AddToCartModal({ products: initialProducts, packs: initialPacks 
                   إتمام الطلب
                 </Link>
               </div>
-          </aside>
-        </motion.div>
+          </motion.aside>
       )}
     </AnimatePresence>
+    </>
   );
 }
