@@ -15,7 +15,6 @@ export function ProductMediaCarousel({
   objectFit = "cover",
   mediaClassName = "scale-[0.92] sm:scale-[0.88] lg:scale-[0.84]",
   sizes = "100vw",
-  indicatorPlacement = "bottom-center",
   controls = true,
   className = "",
 }: {
@@ -28,7 +27,6 @@ export function ProductMediaCarousel({
   objectFit?: "cover" | "contain";
   mediaClassName?: string;
   sizes?: string;
-  indicatorPlacement?: "bottom-center" | "raised-center";
   controls?: boolean;
   className?: string;
 }) {
@@ -70,7 +68,7 @@ export function ProductMediaCarousel({
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${className}`}>
-      <div key={`${activeSlide.type}:${activeSlide.url}`} className="absolute inset-0 animate-[product-media-enter_450ms_ease-out]">
+      <div key={`${activeSlide.type}:${activeSlide.url}`} className="absolute inset-0">
         {activeSlide.type === "video" ? (
           <video
             ref={videoRef}
@@ -111,7 +109,7 @@ export function ProductMediaCarousel({
             type="button"
             onClick={(event) => { event.preventDefault(); event.stopPropagation(); selectSlide(activeIndex - 1); }}
             aria-label="الشريحة السابقة"
-            className="absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-black/45 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            className="absolute left-2 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-[#8b102f]/30 bg-white/90 text-[#8b102f] transition-colors hover:border-[#8b102f]/50 hover:bg-[#f7e9ed] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8b102f]"
           >
             <FiChevronLeft className="h-4 w-4" />
           </button>
@@ -119,11 +117,11 @@ export function ProductMediaCarousel({
             type="button"
             onClick={(event) => { event.preventDefault(); event.stopPropagation(); selectSlide(activeIndex + 1); }}
             aria-label="الشريحة التالية"
-            className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-black/45 text-white shadow-sm backdrop-blur-sm transition hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+            className="absolute right-2 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-[#8b102f]/30 bg-white/90 text-[#8b102f] transition-colors hover:border-[#8b102f]/50 hover:bg-[#f7e9ed] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8b102f]"
           >
             <FiChevronRight className="h-4 w-4" />
           </button>
-          <div role="group" aria-label="شرائح المنتج" className={`absolute z-20 flex items-center gap-1.5 rounded-full bg-black/45 backdrop-blur-sm ${indicatorPlacement === "raised-center" ? "bottom-7 left-1/2 -translate-x-1/2 gap-1 px-2 py-0.5" : "bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-2"}`}>
+          <div role="group" aria-label="شرائح المنتج" className="absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5">
             {slides.map((slide, slideIndex) => (
               <button
                 key={`${slide.url}-${slideIndex}`}
@@ -131,7 +129,7 @@ export function ProductMediaCarousel({
                 onClick={(event) => { event.preventDefault(); event.stopPropagation(); selectSlide(slideIndex); }}
                 aria-label={`عرض ${slide.type === "video" ? "الفيديو" : "الصورة"} ${slideIndex + 1}`}
                 aria-current={activeIndex === slideIndex ? "true" : undefined}
-                className={`rounded-full transition-all ${indicatorPlacement === "raised-center" ? "h-1.5" : "h-2"} ${activeIndex === slideIndex ? `${indicatorPlacement === "raised-center" ? "w-4" : "w-5"} bg-white` : `${indicatorPlacement === "raised-center" ? "w-1.5" : "w-2"} bg-white/60 hover:bg-white`}`}
+                className={`h-1.5 w-1.5 rounded-full transition-colors ${activeIndex === slideIndex ? "bg-[#8b102f]" : "bg-neutral-300 hover:bg-neutral-500"}`}
               />
             ))}
           </div>

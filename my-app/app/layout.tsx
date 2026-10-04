@@ -117,7 +117,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang={siteLanguage}
       className={`${alexandria.className} ${tajawalFont.variable} ${ruwudu.variable} bg-white h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full w-full overflow-x-hidden flex flex-col">
         <JsonLd data={siteStructuredData} />
         <SpeedInsights />
         <Header accountHref={accountHref} accountLabel={accountLabel} products={products} packs={packs} />

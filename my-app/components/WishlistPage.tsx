@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
-import { FiArrowRight, FiCheck, FiHeart, FiShoppingBag, FiStar } from "react-icons/fi";
+import { FiChevronLeft, FiCheck, FiShoppingBag, FiStar } from "react-icons/fi";
 import type { Product } from "@/types/catalog";
 import { getServerWishlistSnapshot, getWishlistIds, getWishlistSnapshot, subscribeToWishlist } from "@/lib/wishlist";
 import { addProductToCart } from "@/lib/cart";
 import { WishlistButton } from "@/components/WishlistButton";
 import { getProductCardMedia } from "@/lib/product-media";
 import { ProductMediaCarousel } from "@/components/ProductMediaCarousel";
+import { StoreEmptyState } from "@/components/StoreEmptyState";
 
 
 export function WishlistPage({ products }: { products: Product[] }) {
@@ -17,28 +18,19 @@ export function WishlistPage({ products }: { products: Product[] }) {
   const savedProducts = savedIds.map((id) => products.find((product) => product.id === id)).filter((product): product is Product => Boolean(product));
 
   return (
-    <main dir="rtl" className="min-h-[calc(100vh-80px)] bg-[#faf9f8] text-neutral-950">
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-        <header className="mb-5 flex items-end justify-between gap-3 border-b border-neutral-200 bg-white px-4 pb-4 pt-4 sm:mb-6 sm:px-5 sm:pb-5">
-          <div>
-            <p className="text-[10px] font-bold text-[#8B102F]">اختياراتك المحفوظة</p>
-            <h1 className="mt-0.5 text-xl font-black sm:text-2xl">المفضلة</h1>
-            <Link href="/products" className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-neutral-500 transition hover:text-[#8B102F]">
-              <FiArrowRight className="h-3 w-3" /> متابعة التسوق
-            </Link>
-          </div>
-          <span className="shrink-0 rounded-md bg-[#f7e9ed] px-2.5 py-1.5 text-[10px] font-bold text-[#8B102F] sm:text-xs">{savedProducts.length} منتجات</span>
-        </header>
-
+    <main dir="rtl" className="min-h-[calc(100vh-80px)] w-full min-w-0 overflow-x-clip bg-[#faf9f8] text-neutral-950">
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:px-8">
         {savedProducts.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 bg-white px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f7e9ed] text-[#8B102F]"><FiHeart className="h-5 w-5" /></div>
-            <h2 className="mt-4 text-base font-black">المفضلة فارغة</h2>
-            <p className="mt-1.5 max-w-xs text-xs leading-5 text-neutral-600">احفظ المنتجات التي تهمك لتعود إليها هنا بسهولة.</p>
-            <Link href="/products" className="cart-action-button mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md px-5 text-white">تصفح المنتجات <FiArrowRight className="h-4 w-4 rotate-180" /></Link>
-          </div>
+          <StoreEmptyState
+            illustrationSrc="/empty-box.png"
+            title="المفضلة فارغة"
+          >
+            <Link href="/products" className="text-[#8B102F] bg-[#8B102F]/5 rounded-md border border-dashed border-[#8B102F]/30 inline-flex min-h-9 items-center gap-1 px-3 text-xs font-semibold">
+              اكتشف المنتجات <FiChevronLeft aria-hidden="true" className="h-3.5 w-3.5" />
+            </Link>
+          </StoreEmptyState>
         ) : (
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {savedProducts.map((product) => <WishlistCard key={product.id} product={product} />)}
           </div>
         )}
@@ -61,7 +53,7 @@ function WishlistCard({ product }: { product: Product }) {
   }
 
   return (
-    <article className="group overflow-hidden rounded-md border border-neutral-200 bg-white transition hover:border-[#8B102F]/40">
+    <article className="group min-w-0 overflow-hidden rounded-md border border-neutral-200 bg-white transition hover:border-[#8B102F]/40">
       <div className="relative aspect-[4/5] overflow-hidden bg-[#faf8f9]">
         <ProductMediaCarousel slides={getProductCardMedia(product)} name={product.name} objectFit="contain" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="p-1.5 sm:p-2" />
         <Link href={`/products/${product.id}`} aria-label={`عرض ${product.name}`} className="absolute inset-0 z-10" />

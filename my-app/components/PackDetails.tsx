@@ -137,7 +137,7 @@ export function PackDetails({ pack }: { pack: Pack }) {
 
                 {savings > 0 && (
                   <span className="rounded-xs bg-[#f7e9ed] px-2 py-0.5 text-xs font-black text-[#8B102F]">
-                    وفرت {savings.toLocaleString("ar-MA")} د.م
+                    وفر {savings.toLocaleString("ar-MA")} د.م
                   </span>
                 )}
               </div>

@@ -253,7 +253,7 @@ export function ProductDetails({
 
                 {saving > 0 && (
                   <span className="rounded-lg bg-[#f7e9ed] px-2 py-0.5 text-[10px] font-bold text-[#8B102F]">
-                    وفرت {saving.toLocaleString("ar-MA")} د.م
+                    وفر {saving.toLocaleString("ar-MA")} د.م
                   </span>
                 )}
               </div>

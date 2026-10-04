@@ -1,181 +1,79 @@
-import Link from "next/link";
 import Image from "next/image";
-import {
-  FiMail,
-  FiMapPin,
-  FiMessageCircle,
-  FiPhone,
-} from "react-icons/fi";
+import Link from "next/link";
+import { FiMail, FiMapPin, FiMessageCircle, FiPhone } from "react-icons/fi";
 
-const quickLinks = [
+const footerLinks = [
   { label: "الرئيسية", href: "/" },
   { label: "كل المنتجات", href: "/products" },
   { label: "الباقات والعروض", href: "/packs" },
-  { label: "الأكثر طلباً", href: "/best-sellers" },
-  { label: "قائمة المفضلة", href: "/wishlist" },
-  { label: "سلة التسوق", href: "/cart" },
-];
-
-const customerServiceLinks = [
-  { label: "الأسئلة الشائعة", href: "/#faq" },
   { label: "العروض والتخفيضات", href: "/offers" },
-  { label: "الأكثر مبيعًا", href: "/best-sellers" },
-  { label: "الباقات المنسقة", href: "/packs" },
-  { label: "جميع المنتجات", href: "/products" },
+  { label: "الأكثر طلباً", href: "/best-sellers" },
+  { label: "المفضلة", href: "/wishlist" },
+  { label: "سلة التسوق", href: "/cart" },
+  { label: "الأسئلة الشائعة", href: "/#faq" },
 ];
 
 export function Footer() {
   return (
-    <footer dir="rtl" className="border-t border-neutral-800 bg-neutral-950 pb-14 text-neutral-300 sm:pb-0">
-      
-      {/* 1. Value Guarantee Strip */}
-      {/* <div className="border-b border-neutral-800/80 bg-neutral-900/60 py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
-            
-            <div className="flex items-center gap-3 text-right">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#8B102F]/15 text-[#8B102F]">
-                <FiTruck className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-white">توصيل سريع ومجاني</p>
-                <p className="mt-0.5 text-[11px] text-neutral-400">إلى باب منزلك في مختلف مدن المغرب</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-right">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#8B102F]/15 text-[#8B102F]">
-                <FiShield className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-white">الدفع بعد المعاينة</p>
-                <p className="mt-0.5 text-[11px] text-neutral-400">افحص طلبيتك أولاً ثم ادفع نقداً بكل راحة</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-right">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#8B102F]/15 text-[#8B102F]">
-                <FiClock className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-white">خدمة زبناء سريعة</p>
-                <p className="mt-0.5 text-[11px] text-neutral-400">فريق متواجد للإجابة على جميع استفساراتكم</p>
-              </div>
-            </div>
-
-          </div>
+    <footer dir="rtl" className="border-t border-neutral-200 bg-neutral-50 pb-14 text-neutral-600 sm:pb-0">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-7 lg:grid-cols-[1fr_auto] lg:items-start lg:gap-10 lg:px-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+          <Link href="/" aria-label="سمارة - الرئيسية" className="inline-flex w-fit shrink-0 items-center">
+            <Image src="/SAMARA-LOGO.png" alt="سمارة" width={44} height={44} className="h-11 w-11 object-contain" />
+          </Link>
+          <p className="max-w-md text-xs leading-6 text-neutral-500">
+            منتجات منزلية وباقات مختارة، مع الشحن المجاني والدفع عند الاستلام في المغرب.
+          </p>
         </div>
-      </div> */}
 
-      {/* 2. Main Navigation Columns */}
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4 lg:gap-10 text-right">
-          
-          {/* Column 1: Brand & Bio */}
-          <div className="col-span-2 sm:col-span-1">
-            <Link
-              href="/"
-              aria-label="سمارة - الرئيسية"
-              className="inline-flex items-center"
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-8">
+          <nav aria-label="روابط المتجر" className="col-span-2 sm:col-span-1">
+            <h2 className="text-xs font-bold text-neutral-900">روابط المتجر</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-xs sm:grid-cols-1">
+              {footerLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="transition hover:text-[#8B102F]">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="col-span-2 sm:col-span-2">
+            <h2 className="text-xs font-bold text-neutral-900">تواصل معنا</h2>
+            <ul className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+              <li className="flex items-center gap-2">
+                <FiPhone aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-[#8B102F]" />
+                <a href="tel:0612557789" dir="ltr" className="hover:text-[#8B102F]">0612557789</a>
+              </li>
+              <li className="flex items-center gap-2">
+                <FiMail aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-[#8B102F]" />
+                <a href="mailto:samara.contact.us@gmail.com" className="hover:text-[#8B102F]">samara.contact.us@gmail.com</a>
+              </li>
+              <li className="flex items-start gap-2 sm:col-span-2">
+                <FiMapPin aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#8B102F]" />
+                <span>التوصيل يغطي جميع مدن المغرب</span>
+              </li>
+            </ul>
+            <a
+              href="https://wa.me/212612557789"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-[#8B102F] hover:underline"
             >
-              <Image src="/SAMARA-LOGO.png" alt="سمارة" width={56} height={56} className="h-14 w-14 object-contain" />
-            </Link>
-
-            <p className="mt-3 text-xs leading-6 text-neutral-400">
-              متجركم المغربي لتسوق تشكيلات منسقة بعناية تجمع بين الجودة، الراحة، وأفضل قيمة، مع توصيل مباشر والدفع عند الاستلام.
-            </p>
-
-            <div className="mt-5">
-              <a
-                href="https://wa.me/212600000000"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-neutral-700 bg-neutral-900 px-3.5 text-xs font-bold text-white transition hover:border-[#8B102F] hover:bg-neutral-800"
-              >
-                <FiMessageCircle className="h-4 w-4 text-emerald-400" />
-                <span>تواصل معنا عبر واتساب</span>
-              </a>
-            </div>
+              <FiMessageCircle aria-hidden="true" className="h-3.5 w-3.5" />
+              تواصل معنا عبر واتساب
+            </a>
           </div>
-
-          {/* Column 2: Quick Links */}
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-white">
-              روابط سريعة
-            </h3>
-            <ul className="mt-4 space-y-2.5 text-xs">
-              {quickLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-neutral-400 transition hover:text-white"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 3: Customer Care */}
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-white">
-              اكتشف المتجر
-            </h3>
-            <ul className="mt-4 space-y-2.5 text-xs">
-              {customerServiceLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-neutral-400 transition hover:text-white"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 4: Contact & Coverage */}
-          <div className="col-span-2 lg:col-span-1">
-            <h3 className="text-xs font-black uppercase tracking-wider text-white">
-              معلومات الاتصال
-            </h3>
-            
-            <ul className="mt-4 space-y-3 text-xs text-neutral-400">
-              <li className="flex items-center gap-2.5">
-                <FiPhone className="h-4 w-4 shrink-0 text-[#8B102F]" />
-                <span dir="ltr">+212 6 00 00 00 00</span>
-              </li>
-
-              <li className="flex items-center gap-2.5">
-                <FiMail className="h-4 w-4 shrink-0 text-[#8B102F]" />
-                <span>contact@samara.ma</span>
-              </li>
-
-              <li className="flex items-start gap-2.5">
-                <FiMapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#8B102F]" />
-                <span>التوصيل يغطي جميع مدن المغرب (الدار البيضاء، الرباط، مراكش، طنجة، فاس...)</span>
-              </li>
-            </ul>
-          </div>
-
         </div>
       </div>
 
-      {/* 3. Bottom Legal Bar */}
-      <div className="border-t border-neutral-900 bg-black/60 py-4">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-center sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-[11px] text-neutral-500">
-            © {new Date().getFullYear()} سمارة. جميع الحقوق محفوظة.
-          </p>
-
-          <p className="text-[11px] text-neutral-400">
-            الدفع نقداً عند استلام ومعاينة طلبيتك • تجربة شراء آمنة 100%
-          </p>
-        </div>
+      <div className="border-t border-neutral-100 py-3">
+        <p className="mx-auto max-w-7xl px-4 text-center text-[10px] text-neutral-400 sm:px-6 sm:text-right lg:px-8">
+          © {new Date().getFullYear()} سمارة. جميع الحقوق محفوظة.
+        </p>
       </div>
-
     </footer>
   );
 }

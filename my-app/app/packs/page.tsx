@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiPackage } from "react-icons/fi";
 import { getPacksFromDatabase } from "@/lib/packs-server";
 import { getProductsFromDatabase } from "@/lib/products-server";
 import { createPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
+import { StoreEmptyState } from "@/components/StoreEmptyState";
 
 export async function generateMetadata(): Promise<Metadata> {
   const products = await getProductsFromDatabase();
@@ -44,14 +45,18 @@ export default async function PacksPage() {
 
         {/* Packs Grid */}
         {packs.length === 0 ? (
-          <div className="mt-12 rounded-md border border-neutral-200 py-16 text-center">
-            <p className="text-sm font-bold text-neutral-800">لا توجد باقات متاحة حالياً</p>
-            <Link
-              href="/products"
-              className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#8B102F] hover:underline"
+          <div className="mt-8">
+            <StoreEmptyState
+              icon={<FiPackage aria-hidden="true" className="h-5 w-5" />}
+              title="لا توجد باقات حالياً"
             >
-              تصفح كل المنتجات <FiArrowLeft className="h-3.5 w-3.5" />
-            </Link>
+              <Link
+                href="/products"
+                className="cart-action-button inline-flex h-10 items-center justify-center gap-2 rounded px-5 text-xs font-semibold text-white"
+              >
+                تصفح المنتجات <FiArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
+              </Link>
+            </StoreEmptyState>
           </div>
         ) : (
           <div className="mt-8 grid gap-5 sm:grid-cols-2">

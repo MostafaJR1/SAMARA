@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import {
-  FiArrowRight,
+  FiChevronLeft,
   FiMinus,
   FiPlus,
-  FiShoppingBag,
   FiTag,
   FiTrash2,
   FiX,
 } from "react-icons/fi";
+import { StoreEmptyState } from "@/components/StoreEmptyState";
 import { getPackStock } from "@/lib/packs";
 import type { Pack, Product } from "@/types/catalog";
 import {
@@ -355,28 +355,16 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-white text-neutral-950 pb-16 pt-6">
+    <main dir="rtl" className="min-h-screen bg-white pb-16 pt-3 text-neutral-950 sm:pt-5">
+      <h1 className="sr-only">سلة الشراء وإتمام الطلب</h1>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Top Header Bar */}
-        <div className="mb-6 flex items-center justify-between border-b border-neutral-200 pb-4">
-          <h1 className="text-xl font-black sm:text-2xl">سلة الشراء وإتمام الطلب</h1>
-          <Link
-            href="/products"
-            className="flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-950"
-          >
-            <FiArrowRight className="h-3.5 w-3.5" />
-            <span>متابعة التسوق</span>
-          </Link>
-        </div>
-
         {cartItems.length === 0 ? (
           <EmptyCart />
         ) : (
-          <div className="grid items-start gap-8 lg:grid-cols-12">
+          <div className="grid items-start gap-6 lg:grid-cols-12 lg:gap-8">
             
             {/* SECTION 1: PRODUCTS LIST (7 Cols on Desktop) */}
-            <section className="rounded-md border border-neutral-200 bg-white p-5 sm:p-6 lg:col-span-7">
+            <section className="border-y border-neutral-200 py-4 lg:col-span-7 lg:py-5">
               <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
                 <h2 className="text-sm font-black text-neutral-900">
                   المنتجات المضافة ({itemCount})
@@ -404,8 +392,8 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
             </section>
 
             {/* SECTION 2: FORM INPUTS & SUMMARY (5 Cols on Desktop) */}
-            <section className="rounded-md border border-neutral-200 bg-neutral-50/50 p-5 sm:p-6 lg:sticky lg:top-6 lg:col-span-5">
-              <h2 className="text-sm font-black border-b border-neutral-200 pb-3 text-neutral-900">
+            <section className="border-y border-neutral-200 py-4 lg:sticky lg:top-6 lg:col-span-5 lg:bg-[#faf9f7] lg:px-5 lg:py-5">
+              <h2 className="border-b border-neutral-200 pb-3 text-sm font-black text-neutral-900">
                 بيانات التوصيل والطلب
               </h2>
 
@@ -535,7 +523,7 @@ export function CartPage({ products, packs }: { products: Product[]; packs: Pack
                 <button
                   type="submit"
                   disabled={isSubmitting || orderSubmitted}
-                  className="cart-action-button mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-md text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cart-action-button mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isSubmitting ? "جاري التأكيد..." : "تأكيد الطلب الآن (الدفع عند الاستلام)"}
                 </button>
@@ -680,18 +668,22 @@ function CustomerField({
 
 function EmptyCart() {
   return (
-    <div className="w-full mx-auto flex flex-col items-center justify-center rounded-md border border-dashed border-neutral-300 py-16 text-center">
-      <FiShoppingBag className="h-8 w-8 text-neutral-400" />
-      <h2 className="mt-4 text-base font-black text-neutral-950">سلتك فارغة</h2>
-      <p className="mt-1 text-xs text-neutral-500">
-        لم تضف أي منتجات إلى سلتك بعد.
-      </p>
+    <StoreEmptyState
+      illustrationSrc="/empty-box.png"
+      title="سلتك فارغة"
+    >
       <Link
         href="/products"
-        className="mt-5 rounded-md bg-[#8B102F] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#6f0d26]"
+        className="text-[#8B102F] bg-[#8B102F]/5 rounded-md border border-dashed border-[#8B102F]/30 inline-flex min-h-9 items-center gap-1 px-3 text-xs font-semibold"
       >
-        تصفح المنتجات
+        تصفح المنتجات <FiChevronLeft aria-hidden="true" className="h-3.5 w-3.5" />
       </Link>
-    </div>
+      <Link
+        href="/offers"
+        className="inline-flex min-h-10 items-center gap-1 text-xs font-semibold text-[#8B102F] transition hover:underline"
+      >
+        اكتشف العروض <FiChevronLeft aria-hidden="true" className="h-3.5 w-3.5" />
+      </Link>
+    </StoreEmptyState>
   );
 }

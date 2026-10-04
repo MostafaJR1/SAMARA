@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FiArrowLeft, FiTrendingUp } from "react-icons/fi";
+import { FiArrowLeft, FiShoppingBag, FiTrendingUp } from "react-icons/fi";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { getBestSellingProducts } from "@/lib/best-sellers";
 import { createPageMetadata } from "@/lib/seo";
+import { StoreEmptyState } from "@/components/StoreEmptyState";
 
 export async function generateMetadata(): Promise<Metadata> {
   const products = await getBestSellingProducts();
@@ -19,45 +20,48 @@ export default async function BestSellersPage() {
   const products = await getBestSellingProducts();
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#faf9f8] text-neutral-950">
-      <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-end justify-between gap-4 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-          <div className="text-right">
-            <p className="flex items-center gap-1.5 text-[10px] font-bold text-[#8B102F]">
-              <FiTrendingUp className="h-3.5 w-3.5" /> اختيارات سمارة
-            </p>
-            <h1 className="mt-1 text-xl font-black sm:text-2xl">الأكثر مبيعاً</h1>
-            <p className="mt-1 max-w-lg text-[10px] leading-4 text-neutral-600 sm:text-xs sm:leading-5">
-              ترتيب يعتمد على الطلبات المؤكدة وتقييمات وبيانات المنتجات المتاحة.
-            </p>
-          </div>
-          <span className="shrink-0 rounded-md bg-[#f7e9ed] px-2.5 py-1.5 text-[10px] font-bold text-[#8B102F] sm:text-xs">
-            {products.length} منتجات
+    <main dir="rtl" className="min-h-screen bg-white text-neutral-950">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:space-y-7 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
+        <header className="border-b border-neutral-200 pb-4 text-right sm:pb-5">
+          <span className="inline-flex items-center gap-1.5 border-r-2 border-[#8B102F] px-2.5 py-1 text-[10px] font-semibold text-[#8B102F]">
+            <FiTrendingUp aria-hidden="true" className="h-3.5 w-3.5" />
+            اختيارات سمارة
           </span>
-        </div>
-      </section>
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-neutral-950 sm:text-2xl">الأكثر مبيعاً</h1>
+              <p className="mt-1.5 max-w-xl text-xs leading-5 text-neutral-600 sm:text-sm">
+                ترتيب يعتمد على الطلبات المؤكدة وتقييمات وبيانات المنتجات المتاحة.
+              </p>
+            </div>
+            <span className="shrink-0 pb-1 text-[10px] font-medium text-neutral-500 sm:text-xs">
+              {products.length} منتجات
+            </span>
+          </div>
+        </header>
 
-      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          <section aria-label="المنتجات الأكثر مبيعاً" className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-7 lg:grid-cols-4">
             {products.map((product, index) => (
-              <div key={product.id} className="flex min-w-0 flex-col gap-1.5">
-                <span className="self-start rounded-sm bg-[#f7e9ed] px-2 py-0.5 text-[9px] font-bold text-[#8B102F]">
+              <div key={product.id} className="flex min-w-0 flex-col">
+                <span className="mb-1.5 self-start text-[9px] font-semibold text-neutral-500">
                   الترتيب {index + 1}
                 </span>
                 <HomeProductCard product={product} />
               </div>
             ))}
-          </div>
+          </section>
         ) : (
-          <div className="border-t border-neutral-200 py-16 text-center sm:py-20">
-            <h2 className="text-base font-black sm:text-lg">لا توجد منتجات متاحة حالياً</h2>
-            <Link href="/products" className="cart-action-button mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-md px-5 text-white">
-              تصفح المنتجات <FiArrowLeft className="h-4 w-4" />
+          <StoreEmptyState
+            icon={<FiShoppingBag aria-hidden="true" className="h-5 w-5" />}
+            title="لا توجد منتجات حالياً"
+          >
+            <Link href="/products" className="cart-action-button inline-flex h-10 items-center justify-center gap-2 rounded px-5 text-xs font-semibold text-white">
+              تصفح المنتجات <FiArrowLeft aria-hidden="true" className="h-3.5 w-3.5" />
             </Link>
-          </div>
+          </StoreEmptyState>
         )}
-      </section>
+      </div>
     </main>
   );
 }

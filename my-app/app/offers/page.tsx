@@ -42,7 +42,7 @@ export default async function OffersPage() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-950 selection:bg-neutral-950 selection:text-white">
-      <main dir="rtl" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <main dir="rtl" className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
         <OffersClientView products={finalProducts} packs={finalPacks} />
       </main>
     </div>

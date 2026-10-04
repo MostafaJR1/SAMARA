@@ -18,25 +18,25 @@ export const metadata = createPrivatePageMetadata(
 
 export default function OrderSuccessPage() {
   return (
-    <div className="min-h-screen bg-neutral-50/40 text-neutral-950 selection:bg-neutral-950 selection:text-white">
+    <div className="min-h-screen bg-white text-neutral-950 selection:bg-[#8b102f] selection:text-white">
       <OrderConfetti />
 
       <main
         dir="rtl"
-        className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8"
+        className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8"
       >
-        <section className="w-full max-w-xl rounded-md border border-neutral-200 bg-white p-6 text-center sm:p-10">
+        <section className="w-full max-w-2xl border-y border-neutral-200 py-7 text-center sm:py-9">
           
           {/* Animated Success Badge */}
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#f7e9ed] text-[#8B102F]">
-            <FiCheck className="h-8 w-8 stroke-[2.5]" />
+          <div className="success-badge-pop mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f7e9ed] text-[#8B102F]">
+            <FiCheck className="success-check-draw h-6 w-6 stroke-[2.5]" />
           </div>
 
-          <span className="mt-5 inline-block rounded-xs bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+          <span className="mt-4 inline-block border border-emerald-200 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">
             تم استلام طلبك بنجاح
           </span>
 
-          <h1 className="mt-2 text-2xl font-black tracking-tight text-neutral-950 sm:text-3xl">
+          <h1 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
             شكراً لثقتك بمتجر سمارة
           </h1>
 
@@ -45,10 +45,10 @@ export default function OrderSuccessPage() {
           </p>
 
           {/* Steps Roadmap */}
-          <div className="mt-8 grid grid-cols-3 gap-2 border-t border-neutral-150 pt-6 text-center">
+          <div className="mt-6 grid grid-cols-3 gap-2 border-t border-neutral-200 pt-5 text-center">
             
             <div className="flex flex-col items-center">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-neutral-100 text-neutral-700">
+              <span className="flex h-8 w-8 items-center justify-center bg-neutral-100 text-neutral-700">
                 <FiClock className="h-4 w-4" />
               </span>
               <p className="mt-2 text-xs font-bold text-neutral-900">1. الاتصال للتأكيد</p>
@@ -56,7 +56,7 @@ export default function OrderSuccessPage() {
             </div>
 
             <div className="flex flex-col items-center">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-neutral-100 text-neutral-700">
+              <span className="flex h-8 w-8 items-center justify-center bg-neutral-100 text-neutral-700">
                 <FiPackage className="h-4 w-4" />
               </span>
               <p className="mt-2 text-xs font-bold text-neutral-900">2. تجهيز الشحنة</p>
@@ -64,7 +64,7 @@ export default function OrderSuccessPage() {
             </div>
 
             <div className="flex flex-col items-center">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-neutral-100 text-neutral-700">
+              <span className="flex h-8 w-8 items-center justify-center bg-neutral-100 text-neutral-700">
                 <FiTruck className="h-4 w-4" />
               </span>
               <p className="mt-2 text-xs font-bold text-neutral-900">3. الدفع بعد المعاينة</p>
@@ -74,10 +74,10 @@ export default function OrderSuccessPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 flex flex-col justify-center gap-2.5 sm:flex-row">
+          <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Link
               href="/products"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#8B102F] px-7 text-xs font-bold text-white transition hover:bg-black"
+              className="cart-action-button inline-flex h-10 items-center justify-center gap-2 rounded px-7 text-xs font-semibold text-white"
             >
               <span>متابعة التسوق</span>
               <FiArrowLeft className="h-3.5 w-3.5" />
@@ -85,7 +85,7 @@ export default function OrderSuccessPage() {
 
             <Link
               href="/"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-neutral-200 bg-white px-6 text-xs font-bold text-neutral-800 transition hover:border-neutral-400"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded border border-neutral-200 bg-white px-6 text-xs font-semibold text-neutral-800 transition-colors hover:border-neutral-400"
             >
               <span>الصفحة الرئيسية</span>
               <FiShoppingBag className="h-3.5 w-3.5" />
@@ -93,9 +93,9 @@ export default function OrderSuccessPage() {
           </div>
 
           {/* WhatsApp Support Link */}
-          <div className="mt-6 border-t border-neutral-100 pt-4">
+          <div className="mt-5 border-t border-neutral-200 pt-4">
             <a
-              href="https://wa.me/212600000000"
+              href="https://wa.me/212612557789"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-neutral-500 transition hover:text-emerald-700"

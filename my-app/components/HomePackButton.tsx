@@ -14,5 +14,5 @@ export function HomePackButton({ pack }: { pack: Pack }) {
     window.setTimeout(() => setAdded(false), 1800);
   }
 
-  return <button type="button" onClick={addToCart} className="cart-action-button mt-6 inline-flex h-11 cursor-pointer items-center gap-2 rounded-md px-5 text-white">{added ? <><FiCheck className="h-4 w-4" /> تمت الإضافة</> : <><FiShoppingBag className="h-4 w-4" /> أضف الباقة للسلة</>}</button>;
+  return <button type="button" onClick={addToCart} className="cart-action-button mt-5 inline-flex h-10 cursor-pointer items-center gap-2 rounded px-5 text-white">{added ? <><FiCheck className="h-4 w-4" /> تمت الإضافة</> : <><FiShoppingBag className="h-4 w-4" /> أضف الباقة للسلة</>}</button>;
 }

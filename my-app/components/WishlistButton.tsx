@@ -24,7 +24,7 @@ export function WishlistButton({ productId }: { productId: string }) {
         event.stopPropagation();
         toggleWishlist(productId);
       }}
-      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#8B102F]/30 bg-white/95 text-[#8B102F] shadow-sm backdrop-blur transition hover:border-[#8B102F]/50"
+      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#8B102F]/30 bg-white text-[#8B102F] transition-colors hover:border-[#8B102F]/50 hover:bg-[#f7e9ed]"
     >
       <FiHeart className={`h-4 w-4 ${saved ? "fill-[#8B102F]" : ""}`} />
     </button>
