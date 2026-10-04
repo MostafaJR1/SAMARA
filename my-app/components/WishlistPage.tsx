@@ -22,7 +22,7 @@ export function WishlistPage({ products }: { products: Product[] }) {
       <div className="mx-auto w-full min-w-0 max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:px-8">
         {savedProducts.length === 0 ? (
           <StoreEmptyState
-            illustrationSrc="/empty-box.png"
+            illustrationSrc="/Empty-Box.png"
             title="المفضلة فارغة"
           >
             <Link href="/products" className="text-[#8B102F] bg-[#8B102F]/5 rounded-md border border-dashed border-[#8B102F]/30 inline-flex min-h-9 items-center gap-1 px-3 text-xs font-semibold">

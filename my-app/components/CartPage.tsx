@@ -669,7 +669,7 @@ function CustomerField({
 function EmptyCart() {
   return (
     <StoreEmptyState
-      illustrationSrc="/empty-box.png"
+      illustrationSrc="/Empty-Box.png"
       title="سلتك فارغة"
     >
       <Link
